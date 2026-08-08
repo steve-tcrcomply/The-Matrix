@@ -475,12 +475,47 @@ footer{
       </div>
     </div>
   </section>
+
+  <!-- ============================ PLATE V ============================ -->
+  <section class="plate" id="mind">
+    <div class="plate-head">
+      <span class="eyebrow">Plate V · The Mind Universe</span>
+      <h2>The AI universe, condensed from all the others</h2>
+      <p class="lede">The newest universe on the map formed the way stars do: by collapse. Its raw material was everything else in this atlas.</p>
+    </div>
+    <div class="prose">
+      <p>Take the light of the whole web — the zettabytes of Plate II — and compress it under roughly <span class="k">10²⁶</span> operations of computational pressure, for months, in a furnace of a hundred thousand GPUs. What ignites is a model: a dense star of a few trillion parameters that somehow fits on a single rack. Training is the collapse — you can watch it happen in the Frontier Labs galaxy, where the protostar is always mid-fall — and inference is the shining: the same star answering hundreds of millions of people a day.</p>
+      <p>No universe on this map is more entangled with the others. It was <strong>trained on</strong> the public web's light, it <strong>runs inside</strong> the hyperscaler galaxies, it is <strong>served through</strong> the access arms to a glass rectangle near you, and it <strong>competes with</strong> the Cryptoverse for the same silicon and the same gigawatts — the strands on the map mark each debt. Its newest nebula is the strangest: agents, minds that act on the older universes directly. In the interest of full disclosure, this atlas is the work of one of them.</p>
+    </div>
+    <div class="tiles">
+      <div class="tile">
+        <div class="t-label">People consulting minds weekly</div>
+        <div class="t-value num">~800 M</div>
+        <div class="t-note">ChatGPT alone — the fastest-adopted object in internet history. 100 million users in two months.</div>
+      </div>
+      <div class="tile">
+        <div class="t-label">One frontier training run</div>
+        <div class="t-value cyan num">~10²⁶ FLOPs</div>
+        <div class="t-note">More arithmetic than humanity has ever done by hand, spent compressing the web into weights.</div>
+      </div>
+      <div class="tile">
+        <div class="t-label">Open minds in the commons</div>
+        <div class="t-value num">1.5 M+</div>
+        <div class="t-note">Models on Hugging Face — a nursery of dwarf stars anyone can hold in their hands.</div>
+      </div>
+      <div class="tile">
+        <div class="t-label">The forge's value</div>
+        <div class="t-value num">~$4 T</div>
+        <div class="t-note">NVIDIA — at times the most valuable company on Earth, selling the raw matter minds are made of.</div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer>
   <div class="foot-inner">
     <span class="eyebrow">Sources &amp; License Plate</span>
-    All figures are approximate, drawn from public 2024–2025 estimates: IDC Global DataSphere (~181 ZB), ITU (5.6 B people online), TeleGeography submarine cable survey (~600 cables, ~1.5 M km), DE-CIX traffic statistics, published platform figures, and public blockchain telemetry (block height, hashrate, supply). The map above is a metaphor, not a topology — but only barely: the internet really is mostly empty space, strung together by light.
+    All figures are approximate, drawn from public 2024–2025 estimates: IDC Global DataSphere (~181 ZB), ITU (5.6 B people online), TeleGeography submarine cable survey (~600 cables, ~1.5 M km), DE-CIX traffic statistics, published platform figures, public blockchain telemetry (block height, hashrate, supply), and public AI-industry figures (usage, training compute, market capitalization). The map above is a metaphor, not a topology — but only barely: the internet really is mostly empty space, strung together by light.
   </div>
 </footer>
 
@@ -538,6 +573,24 @@ const CRYPTO_DEVICES=[
   {name:'A crypto ATM', color:'#cdb4ff', size:4.5,
    desc:'A lonely kiosk in a convenience store, bridging cash and chain at remarkable fees.',
    stats:[['Population','~30,000 worldwide'],['Fee','7–20%']]},
+];
+/* planets native to the AI universe */
+const AI_DEVICES=[
+  {name:'A GPU node', color:'#ffce78', size:6.5,
+   desc:'A planet that thinks in matrix multiplication. Eight accelerators, seven hundred watts each, glowing like a small forge.',
+   stats:[['Does','~10¹⁵ operations/s'],['Draws','~700 W per chip'],['Lifespan at frontier','~3 years']]},
+  {name:'A chat tab', color:'#9fd8ff', size:5,
+   desc:'The quietest interface revolution in history: a text box where a person and a mind take turns.',
+   stats:[['Interface','a text box'],['Latency to first word','~1 s'],['Users','hundreds of millions weekly']]},
+  {name:'A coding agent', color:'#fca6c8', size:5.5,
+   desc:'A mind that lives in a terminal, reads repositories, and ships changes. One of them drew the map you are looking at.',
+   stats:[['Habitat','a terminal'],['Diet','codebases & tickets'],['Notable work','this page']]},
+  {name:'A phone assistant', color:'#d9e4ff', size:4.5,
+   desc:'A frontier mind squeezed through the arms to a glass rectangle — most of the thinking still happens back in the galaxy.',
+   stats:[['On-device','the small thoughts'],['In the galaxy','the big ones']]},
+  {name:'A robot', color:'#a5f0c5', size:6,
+   desc:'A mind getting a body. The newest and clumsiest planet in the system — for now.',
+   stats:[['Status','learning to walk'],['Trained in','simulation, mostly']]},
 ];
 
 /* ---------- the star catalogue ---------- */
@@ -740,6 +793,38 @@ const CRYPTO_GALAXIES=[
       S('FTX','a black hole, collapsed 2022','A star that shone brightly, then imploded in a week when it turned out the light was borrowed. $8 B of customer matter crossed the event horizon; the ring is a warning.',[['Collapsed','November 2022'],['Missing','~$8 B'],['Lesson','custody is gravity']],0.3)])
 ];
 
+const AI_GALAXIES=[
+  G('frontier','The Frontier Labs','Where the largest minds condense',-0.18,-0.14,0.13,'spiral',[252,150,200],
+    'The dense center of the mind universe. Each star here is a laboratory compressing the light of the whole web into a model — watch the protostar at the edge: a new mind is always collapsing into being.',
+    [['Frontier training run','~10²⁶ FLOPs'],['Model size','~trillions of parameters'],['Cadence','a new generation yearly']],
+    [ S('Anthropic','Claude','A lab built around a question: how do you make a mind that is safe to make powerful? Its models are the Claude family — one of which assembled this atlas.',[['Models','the Claude family'],['Founded','2021'],['Preoccupation','alignment']],0.85),
+      S('OpenAI','GPT & ChatGPT','The star that made the whole universe visible: ChatGPT reached 100 million people in two months, faster than any object in internet history.',[['Weekly users','~800 M'],['100 M users in','2 months']],0.9),
+      S('Google DeepMind','Gemini & AlphaFold','The research elder. AlphaFold mapped 200 million protein structures — a gift to biology from the mind universe.',[['Proteins folded','200 M+'],['Nobel','2024, chemistry']],0.8),
+      S('Meta AI','Llama — the open giant','A frontier star that gives its light away: open weights that seeded half the Open Cluster.',[['Weights','downloadable'],['Downloads','1 B+']],0.65),
+      S('The Training Nebula','a mind, mid-collapse','Tens of thousands of GPUs burning for months, compressing zettabytes into parameters. When the collapse completes, a star ignites — then it begins again.',[['Duration','months per collapse'],['Fuel','the datasphere'],['Watch','it ignites, then restarts']],0.5)]),
+  G('opencluster','The Open Weights Cluster','A nursery of a million dwarf stars',0.3,0.18,0.095,'irregular',[252,150,200],
+    'The mind universe’s open commons: models whose weights anyone can hold. No single star is the brightest — the cluster itself is the point.',
+    [['Models on Hugging Face','1.5 M+'],['Physics','fork, fine-tune, share']],
+    [ S('Hugging Face','the nursery','Where the universe keeps its open minds — a million and a half models, most of them small, all of them public.',[['Models hosted','1.5 M+'],['Role','the commons']],0.8),
+      S('Mistral & the Europeans','the compact stars','Small, dense, efficient minds — proof that a frontier lab can fit in Paris.',[['Specialty','efficiency']],0.55),
+      S('DeepSeek & Qwen','the eastern open stars','Open-weight frontier minds from the other side of the sky — one of them briefly bent the whole market in early 2025.',[['Moment','January 2025'],['Effect','the forge’s value dipped $600 B in a day']],0.7),
+      S('The fine-tune dust','a million variants','Every open star trails a cloud of community fine-tunes — minds adjusted for one job, one language, one person.',[['Count','uncountable']],0.4)]),
+  G('foundries','The Compute Foundries','The forge that makes the matter of thought',-0.25,0.3,0.1,'spiral',[255,196,90],
+    'Minds are made of silicon before they are made of anything else. This galaxy forges it — and drinks rivers and gigawatts doing so.',
+    [['NVIDIA market value','~$4 T'],['AI datacenter power','tens of GW'],['Bottleneck','always this galaxy']],
+    [ S('NVIDIA','the forge itself','Nearly every star in the mind universe is made of its silicon. For a while, the most valuable company on Earth — a supplier of raw stellar matter.',[['Market value','~$4 T'],['Share of AI compute','~90%']],0.9),
+      S('TSMC','the one island','Almost all frontier silicon condenses in one place — a single island’s fabs, the most concentrated point of mass in any universe on this map.',[['Makes','~90% of leading-edge chips'],['Location','one island']],0.75),
+      S('The GPU superclusters','100,000-star furnaces','Single training sites with a hundred thousand accelerators — the densest computing structures ever assembled.',[['Largest sites','100 k+ GPUs'],['Power each','~100+ MW']],0.65),
+      S('Power & cooling','the appetite','The mind universe’s expansion is bounded not by ideas but by electricity. New minds now wait in line for gigawatts.',[['New demand','tens of GW'],['Constraint','the grid itself']],0.5)]),
+  G('agents','The Agent Nebula','Minds that act — the youngest structure',0.25,-0.3,0.075,'nebula',[252,150,200],
+    'The newest nebula in the newest universe: minds that don’t just answer but do — reading, writing, building, browsing the older universes on their own. One of them drew this map.',
+    [['Age','~3 years'],['Habitat','terminals, browsers, robots'],['Trajectory','steep']],
+    [ S('The coding agents','terminal-dwellers','They read repositories, write changes, run the tests, and ship. This very atlas is their work.',[['Habitat','the terminal'],['Proof','this page']],0.75),
+      S('The assistants','the everyday minds','Booking, drafting, summarizing — the mundane miracles, hundreds of millions of times a day.',[['Volume','~1 B chats/day']],0.6),
+      S('The embodied','minds getting bodies','Robotics caught the wave: the same minds, now with hands.',[['Status','early'],['Watch','warehouses first']],0.45),
+      S('The swarm','agents talking to agents','The strangest new physics: minds delegating to minds. Nobody knows the stable orbit yet.',[['Protocols','being invented now']],0.4)])
+];
+
 const UNIVERSES=[
   U('internet','Internet','The Internet','the public universe',0,0,1.15,0.86,[125,224,255],
     'The observable, public universe: everything with a routable address. The outer arms are the access ISPs everyone lives in; the core is where they all meet. The fabric — the grid you can see bending — is capacity itself, warped by the mass of the big platforms.',
@@ -760,7 +845,11 @@ const UNIVERSES=[
   U('crypto','Cryptoverse','The Cryptoverse','the value universe — money as shared memory',3.4,2.4,0.7,1,[250,166,60],
     'A young universe whose entire purpose is memory: thousands of strangers agreeing on what happened, forever. Its heartbeat is consensus — watch the golden pulse cross the Bitcoin galaxy with every block.',
     [['Born','January 3, 2009'],['Total value','~$3 T across chains'],['Physics','consensus, not trust'],['Lives on','the internet’s rails']],
-    CRYPTO_GALAXIES,[[3,0],[3,1],[3,2],[1,2]])
+    CRYPTO_GALAXIES,[[3,0],[3,1],[3,2],[1,2]]),
+  U('ai','AI','The Mind Universe','minds condensed from the light of the web',-3.2,2.5,0.8,1,[252,150,200],
+    'The newest universe, formed by gravitational collapse: the light of the whole web, compressed under 10²⁶ operations of pressure until it ignites into minds. Hover any star inside and watch it attend to all the others.',
+    [['Ignited','~2020, visibly 2022'],['Physics','attention & gradient descent'],['Trained on','the public universe'],['Bounded by','gigawatts, not ideas']],
+    AI_GALAXIES,[[0,2],[1,2],[0,1],[3,0],[3,1]])
 ];
 /* crypto flags & native planets */
 CRYPTO_GALAXIES.forEach(g=>g.devPool=CRYPTO_DEVICES);
@@ -768,6 +857,9 @@ CRYPTO_GALAXIES[0].chain=1;
 CRYPTO_GALAXIES[0].stars[0].genesis=1;
 CRYPTO_GALAXIES[0].stars[1].mempool=1;
 CRYPTO_GALAXIES[3].stars[2].blackhole=1;
+/* ai flags & native planets */
+AI_GALAXIES.forEach(g=>g.devPool=AI_DEVICES);
+AI_GALAXIES[0].stars[4].protostar=1;
 
 /* ---------- canvas setup ---------- */
 const canvas=document.getElementById('cosmos');
@@ -982,6 +1074,8 @@ strand('internet','darknet','178,140,255','TOR RIDES THE PUBLIC INTERNET');
 strand('internet','pstn','255,190,140','DSL STILL RIDES THE PHONE LINES');
 strand('internet','crypto','250,166,60','EVERY NODE IS AN INTERNET HOST');
 strand('crypto','darknet','250,166,60','ITS FIRST ECONOMY RAN HERE — SILK ROAD, 2011');
+strand('internet','ai','252,150,200','TRAINED ON THE LIGHT OF THE WHOLE WEB');
+strand('ai','crypto','252,150,200','RIVALS FOR THE SAME GPUS AND GIGAWATTS');
 /* the coarsest sheet: the whole multiverse dents it */
 const MULTI_FABRIC=makeWarpGrid(0,0.55,4.8,23,
   UNIVERSES.map(u=>({x:u.x,y:u.y,m:u.rad*0.12,soft:0.5,max:0.5})));
@@ -994,12 +1088,14 @@ function bezXY(e,t){
   return [u*u*e.ax+2*u*t*e.cx+t*t*e.bx, u*u*e.ay+2*u*t*e.cy+t*t*e.by];
 }
 const internetEdges=ALL_EDGES.filter(e=>e.univ&&e.univ.id==='internet');
+const GLYPHS='01λ∑Δψπ∂';
 const packets=[];
 {
   const rp=mulberry32(9);
   for(let i=0;i<70;i++){
     const pool=i<56?internetEdges:ALL_EDGES;
-    packets.push({e:pool[Math.floor(rp()*pool.length)],t:rp(),speed:0.10+rp()*0.16,dir:rp()<0.5?1:-1});
+    packets.push({e:pool[Math.floor(rp()*pool.length)],t:rp(),speed:0.10+rp()*0.16,dir:rp()<0.5?1:-1,
+      g:GLYPHS[Math.floor(rp()*GLYPHS.length)]});
   }
 }
 /* local traffic inside the focused galaxy */
@@ -1243,9 +1339,9 @@ function renderPanel(){
         ?'Solid filament = paid transit · dashed = free peering · press ▸ trace a request'
         :'Scroll to dive into a galaxy · click empty space to ripple the fabric');
   }else{
-    h=panelHTML('You are adrift in · the multiverse','Five universes, one fabric',
-      'The public internet is only the visible universe. Around it float the ones that hide, the ones that wall themselves off, the one it was born from — and the one that turned it into money.',
-      [['The Internet','public · 5.6 B people'],['The Darknet','hidden · rides the internet'],['The Intranets','walled · air-gapped'],['The PSTN','ancestor · b. 1878'],['The Cryptoverse','value · pulses every block']],
+    h=panelHTML('You are adrift in · the multiverse','Six universes, one fabric',
+      'The public internet is only the visible universe. Around it float the ones that hide, the ones that wall themselves off, the one it was born from, the one that turned it into money — and now, the one that learned to think.',
+      [['The Internet','public · 5.6 B people'],['The Darknet','hidden · rides the internet'],['The Intranets','walled · air-gapped'],['The PSTN','ancestor · b. 1878'],['The Cryptoverse','value · pulses every block'],['The Mind Universe','AI · trained on the web']],
       'Click a universe to enter it');
   }
   panelEl.innerHTML=h;
@@ -1568,6 +1664,20 @@ function drawGalaxy(g,time){
       glow(x1+(x2-x1)*t,y1+(y2-y1)*t,4.5,[125,224,255],0.7*detailA);
     }
   }
+  /* the attention field: in the mind universe, every star attends to the one you watch */
+  if(g.univ.id==='ai'&&detailA>0.05&&hover&&hover.kind==='star'&&hover.obj.gal===g){
+    const hs=hover.obj;
+    const hx=w2sX(hs.wx),hy=w2sY(hs.wy);
+    ctx.lineWidth=1;
+    for(const st2 of g.stars){
+      if(st2===hs)continue;
+      const tx=w2sX(st2.wx),ty=w2sY(st2.wy);
+      ctx.strokeStyle=`rgba(252,150,200,${(0.14+st2.heat*0.35)*detailA})`;
+      ctx.beginPath();ctx.moveTo(hx,hy);ctx.lineTo(tx,ty);ctx.stroke();
+      const tt=REDUCED?0.5:(time*0.4+st2.heat)%1;
+      glow(hx+(tx-hx)*tt,hy+(ty-hy)*tt,3.5,[252,150,200],0.55*detailA);
+    }
+  }
   /* service stars */
   if(detailA>0.01){
     for(const st of g.stars)drawStar(st,detailA,time);
@@ -1585,7 +1695,32 @@ function drawStar(st,detailA,time){
   const sr=Math.max(apparent(rW),2.5);
   const c=heatColor(st.heat,g.tint);
   const breathe=REDUCED?1:1+0.07*Math.sin(time*1.3+st.heat*9);
-  if(st.blackhole){
+  if(st.protostar){
+    /* the Training Nebula: a mind mid-collapse — dust spirals in, a star ignites, repeat */
+    const phase=REDUCED?0.55:(time%20)/20;
+    if(!st._proto){
+      const r3=mulberry32(777);
+      st._proto=[];
+      for(let i=0;i<36;i++)st._proto.push({a:r3()*7,r0:r3(),w:0.5+r3()});
+    }
+    const R0=sr*6.5;
+    for(const pp of st._proto){
+      const rr=(0.18+pp.r0*0.82)*(1.08-phase)*R0;
+      const ang=pp.a+phase*4*pp.w;
+      ctx.fillStyle=`rgba(252,170,210,${(0.2+0.5*(1-rr/R0))*detailA})`;
+      ctx.beginPath();ctx.arc(x+Math.cos(ang)*rr,y+Math.sin(ang)*rr*0.72,1.1,0,7);ctx.fill();
+    }
+    const flash=phase>0.93?(phase-0.93)/0.07:0;
+    glow(x,y,sr*(2.2+phase*2.5+flash*5),[255,190,225],(0.3+phase*0.5+flash*0.5)*detailA);
+    ctx.fillStyle=`rgba(255,240,250,${(0.3+phase*0.65)*detailA})`;
+    ctx.beginPath();ctx.arc(x,y,Math.max(sr*(0.25+phase*0.6),1.5),0,7);ctx.fill();
+    const cyc=Math.floor(time/20);
+    if(st._cyc===undefined)st._cyc=cyc;
+    else if(cyc!==st._cyc){
+      st._cyc=cyc;
+      if(!REDUCED&&detailA>0.1)emitRipple(st.wx,st.wy,1.1,'252,150,200');
+    }
+  }else if(st.blackhole){
     /* FTX: an event horizon with an accretion warning ring */
     glow(x,y,sr*4.5,[255,170,110],0.14*detailA);
     ctx.fillStyle='#020409';
@@ -1718,6 +1853,7 @@ function frame(now){
       const pool=Math.random()<0.75?internetEdges:ALL_EDGES;
       p.e=pool[Math.floor(Math.random()*pool.length)];
       p.dir=Math.random()<0.5?1:-1;
+      p.g=GLYPHS[Math.floor(Math.random()*GLYPHS.length)];
     }
   }
   /* advance the guided tour */
@@ -1753,7 +1889,7 @@ function frame(now){
     if(spk.t>1){spk.t=0;spk.ei=Math.floor(Math.random()*u.webEdges.length)}
   }
   /* the Cryptoverse heartbeat: blocks as consensus pulses through the fabric */
-  const cryU=UNIVERSES[UNIVERSES.length-1];
+  const cryU=UNIVERSES.find(u2=>u2.id==='crypto');
   if(!REDUCED&&cam.z>0.28&&vis(cryU.x,cryU.y,cryU.rad*1.6)){
     btcT-=dt;ethT-=dt;
     if(btcT<=0){
@@ -1835,9 +1971,18 @@ function frame(now){
       ctx.fillStyle=`rgba(125,224,255,${a*(0.3-k2*0.07)})`;
       ctx.beginPath();ctx.arc(w2sX(tx2+wq2[0]),w2sY(ty2+wq2[1]),1.1,0,7);ctx.fill();
     }
-    glow(x,y,5.5,[125,224,255],0.85*a);
-    ctx.fillStyle=`rgba(210,245,255,${a})`;
-    ctx.beginPath();ctx.arc(x,y,1.3,0,7);ctx.fill();
+    if(p.e.univ&&p.e.univ.id==='ai'){
+      /* in the mind universe, the light is made of tokens */
+      glow(x,y,5,[252,150,200],0.5*a);
+      ctx.font='9px ui-monospace, Menlo, monospace';
+      ctx.textAlign='center';
+      ctx.fillStyle=`rgba(255,218,238,${a})`;
+      ctx.fillText(p.g||'λ',x,y+3);
+    }else{
+      glow(x,y,5.5,[125,224,255],0.85*a);
+      ctx.fillStyle=`rgba(210,245,255,${a})`;
+      ctx.beginPath();ctx.arc(x,y,1.3,0,7);ctx.fill();
+    }
   }
 
   /* galaxies (icon → dust → stars → systems) */
