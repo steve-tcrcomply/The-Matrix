@@ -400,12 +400,47 @@ footer{
       </div>
     </div>
   </section>
+
+  <!-- ============================ PLATE IV ============================ -->
+  <section class="plate" id="ledger">
+    <div class="plate-head">
+      <span class="eyebrow">Plate IV · The Ledger Universe</span>
+      <h2>The Cryptoverse, and how it touches the internet</h2>
+      <p class="lede">A young universe whose entire purpose is memory: thousands of strangers agreeing on what happened, and never forgetting it.</p>
+    </div>
+    <div class="prose">
+      <p>Every other universe on this map moves <em>information</em>. The Cryptoverse moves <strong>agreement</strong>. Its physics is consensus: roughly every ten minutes the Bitcoin galaxy seals a block — on the map above, time runs 60× fast, so a golden wave crosses its fabric every ten seconds — and twenty thousand independent nodes accept the same history, none of them trusting any other. Ethereum's heartbeat is quicker: a violet flicker every twelve seconds, sealing the state of a shared world-computer.</p>
+      <p>And it is not a separate cosmos, whatever its inhabitants say. Every node is an ordinary internet host; every transaction rides the same submarine filaments as your email. Its first real economy ran in the Darknet, and the strands on the map mark both debts. The Exchange Nebula is where this universe touches the old one — banks, dollars, regulators — and it keeps one black hole with a warning ring, as a reminder of what pooled custody can collapse into.</p>
+    </div>
+    <div class="tiles">
+      <div class="tile">
+        <div class="t-label">Bitcoin market value</div>
+        <div class="t-value num">~$2 T</div>
+        <div class="t-note">Roughly the GDP of Italy, secured by nothing but mathematics and electricity.</div>
+      </div>
+      <div class="tile">
+        <div class="t-label">Blocks since genesis</div>
+        <div class="t-value num">≈880,000</div>
+        <div class="t-note">One every ~10 minutes since January 3, 2009. The chain has never once stopped.</div>
+      </div>
+      <div class="tile">
+        <div class="t-label">Mining power</div>
+        <div class="t-value cyan num">~800 EH/s</div>
+        <div class="t-note">Eight hundred quintillion guesses per second, all aimed at a single arithmetic puzzle.</div>
+      </div>
+      <div class="tile">
+        <div class="t-label">The whole universe, on disk</div>
+        <div class="t-value num">~600 GB</div>
+        <div class="t-note">The entire Bitcoin ledger fits on one laptop-planet. Memory is cheap; agreement is expensive.</div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer>
   <div class="foot-inner">
     <span class="eyebrow">Sources &amp; License Plate</span>
-    All figures are approximate, drawn from public 2024–2025 estimates: IDC Global DataSphere (~181 ZB), ITU (5.6 B people online), TeleGeography submarine cable survey (~600 cables, ~1.5 M km), DE-CIX traffic statistics, and published platform figures. The map above is a metaphor, not a topology — but only barely: the internet really is mostly empty space, strung together by light.
+    All figures are approximate, drawn from public 2024–2025 estimates: IDC Global DataSphere (~181 ZB), ITU (5.6 B people online), TeleGeography submarine cable survey (~600 cables, ~1.5 M km), DE-CIX traffic statistics, published platform figures, and public blockchain telemetry (block height, hashrate, supply). The map above is a metaphor, not a topology — but only barely: the internet really is mostly empty space, strung together by light.
   </div>
 </footer>
 
@@ -445,6 +480,24 @@ const DEVICES=[
   {name:'A connected car', color:'#8fe8e0', size:5,
    desc:'Maps, telemetry, software updates at highway speed — a planet that refuses to stay in orbit.',
    stats:[['Link','4G/5G modem'],['Cargo','telemetry + OTA updates'],['Handovers','tower to tower, seamless']]},
+];
+/* planets native to the Cryptoverse */
+const CRYPTO_DEVICES=[
+  {name:'A mining rig', color:'#ffce78', size:6.5,
+   desc:'A shed full of ASICs somewhere with cheap electricity, guessing numbers a trillion times a second in hope of the next block.',
+   stats:[['Job','guess, guess, guess'],['Reward per block','3.125 BTC'],['Runs hottest in','Texas, Iceland, Sichuan']]},
+  {name:'A hardware wallet', color:'#a5f0c5', size:4,
+   desc:'A tiny cold moonlet that keeps its keys offline. The only planet here that is safer the less it orbits.',
+   stats:[['Keys stored','offline, forever'],['Attack surface','a USB port and your memory'],['Motto','not your keys, not your coins']]},
+  {name:'A phone wallet app', color:'#9fd8ff', size:5,
+   desc:'Where most people actually touch this universe — a glass rectangle holding a cryptographic secret.',
+   stats:[['Signs transactions','locally'],['Balance lives','on-chain, not in the phone']]},
+  {name:'An exchange server', color:'#ffb1a1', size:6,
+   desc:'A custodial planet holding millions of people’s coins in one place — which history suggests is a gravity risk.',
+   stats:[['Custody','pooled, trusted'],['Failure mode','see: the black hole']]},
+  {name:'A crypto ATM', color:'#cdb4ff', size:4.5,
+   desc:'A lonely kiosk in a convenience store, bridging cash and chain at remarkable fees.',
+   stats:[['Population','~30,000 worldwide'],['Fee','7–20%']]},
 ];
 
 /* ---------- the star catalogue ---------- */
@@ -583,6 +636,37 @@ const PSTN_GALAXIES=[
       S('Dial-up','the cosmic background hiss','56 kbit/s — the sound of the early universe. Some thousands of souls still connect this way.',[['Bandwidth','56 kbit/s'],['One 4K film at 56k','~19 years']],0.4)])
 ];
 
+const CRYPTO_GALAXIES=[
+  G('bitcoin','The Bitcoin Galaxy','Proof-of-work — the heaviest consensus',-0.22,-0.12,0.12,'spiral',[255,196,90],
+    'The first and heaviest galaxy of the value universe. Its physics is brutal and simple: whoever burns the most energy writes history, and history is never rewritten. Watch its fabric — a golden pulse crosses it with every block.',
+    [['Market value','~$2 T'],['Block height','≈880,000'],['Hashrate','~800 EH/s'],['Nodes','~20,000 listening']],
+    [ S('The Genesis Block','January 3, 2009','The immovable center. Its coinbase message — a newspaper headline about bank bailouts — is carved into every copy of the chain, forever.',[['Mined by','Satoshi Nakamoto'],['Reward','50 BTC, unspendable'],['Message','“Chancellor on brink…”']],0.95),
+      S('The Mining Pools','the furnace stars','Warehouses of ASICs pointed at one puzzle. The fireflies around this star are the mempool — unconfirmed transactions waiting to be swept into the next block.',[['Combined power','~800 EH/s'],['Block time','~10 min (10 s here)'],['Reward','3.125 BTC + fees']],0.85),
+      S('The Full Nodes','~20,000 witnesses','Every one keeps the whole history and trusts none of the others. Agreement without authority — the strange physics this galaxy invented.',[['Nodes','~20,000'],['Each stores','all ~600 GB'],['Trust required','zero']],0.6),
+      S('The Lightning Network','the fast thin layer','A lattice of payment channels above the chain, where value moves at internet speed and settles to the slow layer below.',[['Speed','milliseconds'],['Capacity','~5,000 BTC']],0.5),
+      S('Satoshi’s Hoard','a dark star','Roughly a million BTC mined at the beginning and never moved. The most-watched dead star in any universe.',[['Balance','~1 M BTC'],['Last movement','never'],['Watchers','everyone']],0.4)]),
+  G('ethereum','The Ethereum Galaxy','The programmable one',0.26,-0.16,0.105,'spiral',[160,150,255],
+    'Where the ledger learned to compute. Every twelve seconds — a violet flicker here — this galaxy agrees not just on balances but on the state of a shared world computer.',
+    [['Validators','~1 M staking'],['Block time','12 s'],['Smart contracts','60 M+ deployed']],
+    [ S('The EVM','the world computer','One virtual machine, replicated across every node, executing the same code in lockstep. Slow, expensive, and unstoppable.',[['Copies running','every node'],['Uptime','continuous since 2015']],0.9),
+      S('The DeFi Protocols','banks made of code','Lending, exchange and insurance running as open-source machinery with no staff and no office — and no one to call.',[['Value locked','~$100 B'],['Staff','0']],0.7),
+      S('The Layer-2 Rollups','suburb galaxies','Arbitrum, Base, Optimism — young spirals that batch their history and anchor it to the mother galaxy for safety.',[['Physics','execute fast, settle slow'],['Fees','pennies']],0.55),
+      S('The Validators','~1 million stakers','Proof-of-stake: history is written not by burned energy but by locked capital. Misbehave and your stake burns instead.',[['Staked','~34 M ETH'],['Penalty','slashing']],0.6),
+      S('The NFT Nebula','mostly faded','A nebula that blazed in 2021 — apes, rocks, pixel punks — now cooled to a faint archival glow. The chain remembers it all anyway; that is the one thing it does.',[['Peak','2021'],['Now','archival dust']],0.3)]),
+  G('stable','The Stablecoin Binaries','Pegged double stars',-0.3,0.28,0.07,'irregular',[165,240,197],
+    'Strange binary systems: crypto stars locked in tight orbit around a currency from another universe entirely. They never drift more than a cent away — usually.',
+    [['USDT in orbit','~$140 B'],['USDC in orbit','~$45 B'],['Anchor','the U.S. dollar']],
+    [ S('The Dollar','a foreign star','Not from this universe at all — it shines in from the world of central banks, and everything in this cluster orbits it.',[['Issued by','a central bank'],['On-chain','only as a reflection']],0.85),
+      S('Tether — USDT','the heavy twin','The most-traded object in the entire Cryptoverse. More volume flows through it than through Bitcoin itself.',[['Supply','~$140 B'],['Daily volume','highest in the universe']],0.7),
+      S('USD Coin','the audited twin','The same physics with quarterly attestations — a binary that files paperwork.',[['Supply','~$45 B'],['Reserves','T-bills, mostly']],0.55)]),
+  G('exchange','The Exchange Nebula','Where crypto touches the old universe',0.2,0.3,0.09,'nebula',[255,196,90],
+    'The customs port between universes: dollars in, coins out. Every strand from the Cryptoverse to the internet’s banks passes through here — and one of its stars collapsed.',
+    [['Role','fiat ↔ crypto gateway'],['Custody','pooled & trusted'],['Cautionary object','one black hole']],
+    [ S('Binance','the largest port','The heaviest trading venue in the value universe — most days, most volume, most scrutiny.',[['Spot volume','#1 globally'],['Users','250 M+']],0.8),
+      S('Coinbase','the regulated port','The listed, licensed, audited door — where the old universe feels safest reaching in.',[['Listed','NASDAQ'],['Users','100 M+']],0.65),
+      S('FTX','a black hole, collapsed 2022','A star that shone brightly, then imploded in a week when it turned out the light was borrowed. $8 B of customer matter crossed the event horizon; the ring is a warning.',[['Collapsed','November 2022'],['Missing','~$8 B'],['Lesson','custody is gravity']],0.3)])
+];
+
 const UNIVERSES=[
   U('internet','Internet','The Internet','the public universe',0,0,1.15,0.86,[125,224,255],
     'The observable, public universe: everything with a routable address. Its fabric — the grid you can see bending — is capacity itself, warped by the mass of the big platforms.',
@@ -599,8 +683,18 @@ const UNIVERSES=[
   U('pstn','The PSTN','The Ancestor Universe','the telephone network, b. 1878',0.3,3.4,0.5,1,[255,190,140],
     'The universe that came before — circuit-switched, copper-veined, and still not quite gone. The internet was born inside it, then outgrew it.',
     [['Age','147 years'],['Peak landlines','~1.3 B'],['Relation','the internet’s parent']],
-    PSTN_GALAXIES,[[0,1]])
+    PSTN_GALAXIES,[[0,1]]),
+  U('crypto','Cryptoverse','The Cryptoverse','the value universe — money as shared memory',3.4,2.4,0.7,1,[250,166,60],
+    'A young universe whose entire purpose is memory: thousands of strangers agreeing on what happened, forever. Its heartbeat is consensus — watch the golden pulse cross the Bitcoin galaxy with every block.',
+    [['Born','January 3, 2009'],['Total value','~$3 T across chains'],['Physics','consensus, not trust'],['Lives on','the internet’s rails']],
+    CRYPTO_GALAXIES,[[3,0],[3,1],[3,2],[1,2]])
 ];
+/* crypto flags & native planets */
+CRYPTO_GALAXIES.forEach(g=>g.devPool=CRYPTO_DEVICES);
+CRYPTO_GALAXIES[0].chain=1;
+CRYPTO_GALAXIES[0].stars[0].genesis=1;
+CRYPTO_GALAXIES[0].stars[1].mempool=1;
+CRYPTO_GALAXIES[3].stars[2].blackhole=1;
 
 /* ---------- canvas setup ---------- */
 const canvas=document.getElementById('cosmos');
@@ -624,8 +718,10 @@ function buildStarfield(){
   starfield=[];
   const n=Math.round(W*H/4200);
   for(let i=0;i<n;i++){
+    const temp=rnd();
     starfield.push({x:rnd()*W,y:rnd()*H,r:rnd()<0.85?rnd()*0.9+0.3:rnd()*1.6+0.8,
-      a:0.12+rnd()*0.5,tw:rnd()*Math.PI*2,ts:0.3+rnd()*1.2,layer:rnd()<0.5?0.05:0.12});
+      a:0.12+rnd()*0.5,tw:rnd()*Math.PI*2,ts:0.3+rnd()*1.2,layer:rnd()<0.5?0.05:0.12,
+      col:temp<0.09?'255,224,190':temp<0.2?'170,200,255':'214,224,248'});
   }
 }
 
@@ -666,14 +762,15 @@ function initGalaxy(g,gi){
       const rr=0.34+((si-1)/(m-1))*0.6;
       st.gx=Math.cos(ang)*rr; st.gy=Math.sin(ang)*rr*0.72;
     }
-    const pn=3+Math.floor(rnd2()*3);
+    const pool=g.devPool||DEVICES;
+    const pn=Math.min(3+Math.floor(rnd2()*3),pool.length);
     st.planets=[];
     const used=new Set();
     for(let k=0;k<pn;k++){
-      let di=Math.floor(rnd2()*DEVICES.length);
-      while(used.has(di))di=(di+1)%DEVICES.length;
+      let di=Math.floor(rnd2()*pool.length);
+      while(used.has(di))di=(di+1)%pool.length;
       used.add(di);
-      st.planets.push({dev:DEVICES[di],orbit:0.34+k*0.16+rnd2()*0.05,
+      st.planets.push({dev:pool[di],orbit:0.34+k*0.16+rnd2()*0.05,
         ang:rnd2()*Math.PI*2,speed:(0.12+rnd2()*0.1)/(1+k*0.6)*(rnd2()<0.5?1:-1),
         squash:0.94,star:st});
     }
@@ -686,13 +783,15 @@ function makeWarpGrid(cx,cy,ext,N,masses){
   for(let r=0;r<N;r++){
     const row=[];
     for(let c=0;c<N;c++){
-      let vx=cx-ext+2*ext*c/(N-1), vy=cy-ext+2*ext*r/(N-1);
+      const ox=cx-ext+2*ext*c/(N-1), oy=cy-ext+2*ext*r/(N-1);
+      let vx=ox, vy=oy;
       for(const m of masses){
         const dx=m.x-vx,dy=m.y-vy,d=Math.hypot(dx,dy)+1e-6;
         const pull=Math.min(Math.min(m.m/(d+m.soft),d*0.55),m.max);
         vx+=dx/d*pull;vy+=dy/d*pull;
       }
-      row.push([vx,vy]);
+      /* third slot: normalized strain — how hard this vertex is bent */
+      row.push([vx,vy,Math.hypot(vx-ox,vy-oy)/ext]);
     }
     grid.push(row);
   }
@@ -701,11 +800,15 @@ function makeWarpGrid(cx,cy,ext,N,masses){
 const ripples=[];
 const mouseW={x:1e9,y:1e9};
 let prevX=0,prevY=0,prevZ=0,sysGridBudget=3;
-function emitRipple(wx,wy,strength){
+/* crypto heartbeat state */
+let btcT=3,ethT=1,fireRush=-99,lastBlockAt=-99,frameDt=0;
+const FIRE=[];
+for(let i=0;i<24;i++)FIRE.push({x:0,y:0,vx:0,vy:0,init:0,seed:Math.random()*7});
+function emitRipple(wx,wy,strength,rgb){
   if(REDUCED)return;
   const K=cam.z*SCALE;
   const s=strength||1;
-  ripples.push({wx,wy,t0:performance.now()/1000,dur:2.4,v:s*230/K,amp:s*16/K,w:60/K});
+  ripples.push({wx,wy,t0:performance.now()/1000,dur:2.4,v:s*230/K,amp:s*16/K,w:60/K,rgb:rgb||'125,224,255'});
   if(ripples.length>8)ripples.shift();
 }
 /* dynamic displacement of any world point: cursor mass + travelling ripples */
@@ -785,6 +888,8 @@ for(const u of UNIVERSES){
       if(j>i)u.webEdges.push([nodes[i][0],nodes[i][1],nodes[j][0],nodes[j][1]]);
     }
   }
+  /* micro-traffic sparks that live on the fine web */
+  u.webSparks=Array.from({length:6},()=>({ei:Math.floor(rndX()*u.webEdges.length),t:rndX(),sp:0.15+rndX()*0.25}));
 }
 /* strands between universes */
 function strand(ua,ub,tint,lbl){
@@ -802,6 +907,8 @@ function strand(ua,ub,tint,lbl){
 }
 strand('internet','darknet','178,140,255','TOR RIDES THE PUBLIC INTERNET');
 strand('internet','pstn','255,190,140','DSL STILL RIDES THE PHONE LINES');
+strand('internet','crypto','250,166,60','EVERY NODE IS AN INTERNET HOST');
+strand('crypto','darknet','250,166,60','ITS FIRST ECONOMY RAN HERE — SILK ROAD, 2011');
 /* the coarsest sheet: the whole multiverse dents it */
 const MULTI_FABRIC=makeWarpGrid(0,0.55,4.8,23,
   UNIVERSES.map(u=>({x:u.x,y:u.y,m:u.rad*0.12,soft:0.5,max:0.5})));
@@ -1000,9 +1107,9 @@ function renderPanel(){
   }else if(c.u){
     h=panelHTML('Universe · '+c.u.sub,c.u.name,c.u.desc,c.u.stats,'Scroll to dive into a galaxy · click empty space to ripple the fabric');
   }else{
-    h=panelHTML('You are adrift in · the multiverse','Four universes, one fabric',
-      'The public internet is only the visible universe. Around it float the ones that hide, the ones that wall themselves off, and the one it was born from.',
-      [['The Internet','public · 5.6 B people'],['The Darknet','hidden · rides the internet'],['The Intranets','walled · air-gapped'],['The PSTN','ancestor · b. 1878']],
+    h=panelHTML('You are adrift in · the multiverse','Five universes, one fabric',
+      'The public internet is only the visible universe. Around it float the ones that hide, the ones that wall themselves off, the one it was born from — and the one that turned it into money.',
+      [['The Internet','public · 5.6 B people'],['The Darknet','hidden · rides the internet'],['The Intranets','walled · air-gapped'],['The PSTN','ancestor · b. 1878'],['The Cryptoverse','value · pulses every block']],
       'Click a universe to enter it');
   }
   panelEl.innerHTML=h;
@@ -1090,6 +1197,15 @@ function drawGrid(grid,alpha,rgb,time){
     r?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);
   }
   ctx.stroke();
+  /* energy glints where the sheet is bent hardest — the wells glow */
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const strain=grid[r][c][2]||0;
+    if(strain<0.018)continue;
+    const p=pts[r*N+c];
+    const br=REDUCED?1:0.7+0.3*Math.sin(time*2+(r*3+c)*1.7);
+    ctx.fillStyle=`rgba(170,225,255,${Math.min(0.5,strain*7)*alpha*4*br})`;
+    ctx.beginPath();ctx.arc(p[0],p[1],1.2,0,7);ctx.fill();
+  }
 }
 /* stroke a filament as a warped polyline so it rides the fabric too */
 function strokeEdge(e,time){
@@ -1132,6 +1248,14 @@ function drawUniverseLayer(u,time){
     for(const p of u.webNodes){
       const wn=warp(p[0],p[1],time);
       ctx.fillRect(w2sX(p[0]+wn[0])-0.6,w2sY(p[1]+wn[1])-0.6,1.2,1.2);
+    }
+    /* sparks: small sites talking to each other */
+    for(const spk of u.webSparks){
+      const s=u.webEdges[spk.ei];if(!s)continue;
+      const sx=s[0]+(s[2]-s[0])*spk.t, sy=s[1]+(s[3]-s[1])*spk.t;
+      const wn=warp(sx,sy,time);
+      ctx.fillStyle=`rgba(180,235,255,${0.85*webA})`;
+      ctx.fillRect(w2sX(sx+wn[0])-0.9,w2sY(sy+wn[1])-0.9,1.8,1.8);
     }
   }
   /* bubble (multiverse view) */
@@ -1232,6 +1356,61 @@ function drawGalaxy(g,time){
     clickables.push({x:gx,y:gy,r:Math.max(apparent(g.r)*1.3,34),obj:g,kind:'galaxy',label:g.name,sub:g.sub+' — click to fall in'});
   }
 
+  /* the chain itself: every block since genesis, spiralling outward */
+  if(g.chain&&detailA>0.02){
+    const NB=30;
+    const bp=[];
+    ctx.strokeStyle=`rgba(255,200,110,${0.22*detailA})`;
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    for(let i=0;i<NB;i++){
+      const t2=i/(NB-1);
+      const ang=t2*4.2*Math.PI+g.tilt;
+      const rr=(0.06+t2*0.72)*g.detR;
+      const x=w2sX(g.wx+Math.cos(ang)*rr),y=w2sY(g.wy+Math.sin(ang)*rr*0.72);
+      bp.push([x,y]);
+      i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+    }
+    ctx.stroke();
+    for(let i=0;i<NB;i++){
+      ctx.fillStyle=`rgba(255,206,120,${(0.25+0.55*i/NB)*detailA})`;
+      ctx.fillRect(bp[i][0]-2,bp[i][1]-2,4,4);
+    }
+    const tip=bp[NB-1];
+    const fresh=Math.max(0,1-(time-lastBlockAt)*0.8);
+    glow(tip[0],tip[1],10+fresh*16,[255,200,110],(0.45+0.55*fresh)*detailA);
+    label(tip[0],tip[1]-14,'block ≈ 880,000',0.55*detailA,9);
+  }
+  /* mempool fireflies: unconfirmed transactions swarming the miners,
+     swept into the star on every block pulse */
+  if(g.chain&&detailA>0.05){
+    const ms=g.stars.find(s2=>s2.mempool);
+    if(ms){
+      const R0=g.detR*0.13;
+      for(const f of FIRE){
+        if(!f.init){
+          f.init=1;
+          const a2=Math.random()*7,r2=R0*(0.4+Math.random());
+          f.x=Math.cos(a2)*r2;f.y=Math.sin(a2)*r2;
+        }
+        if(!REDUCED){
+          const rush=(time-fireRush)<1.1?7:0.5;
+          f.vx+=((Math.random()-0.5)*R0*4-f.x*rush)*frameDt;
+          f.vy+=((Math.random()-0.5)*R0*4-f.y*rush)*frameDt;
+          f.vx*=0.93;f.vy*=0.93;
+          f.x+=f.vx;f.y+=f.vy;
+          if(Math.hypot(f.x,f.y)<R0*0.1){
+            const a2=Math.random()*7;
+            f.x=Math.cos(a2)*R0*1.25;f.y=Math.sin(a2)*R0*1.25;f.vx=f.vy=0;
+          }
+        }
+        const fx=w2sX(ms.wx+f.x),fy=w2sY(ms.wy+f.y);
+        const fl=REDUCED?0.7:0.45+0.45*Math.sin(time*5+f.seed*9);
+        ctx.fillStyle=`rgba(255,214,130,${fl*0.8*detailA})`;
+        ctx.fillRect(fx-1,fy-1,2,2);
+      }
+    }
+  }
   /* local traffic between stars */
   if(detailA>0.05&&state.ctx.g===g){
     for(const p of localPk){
@@ -1260,22 +1439,37 @@ function drawStar(st,detailA,time){
   const rW=g.detR*0.02*(0.6+st.heat*0.8);
   const sr=Math.max(apparent(rW),2.5);
   const c=heatColor(st.heat,g.tint);
-  glow(x,y,sr*3.2,c,0.5*detailA);
-  if(sysA>0.3)glow(x,y,sr*1.9,[255,235,200],0.6*sysA);
-  /* diffraction spikes at galaxy scale only */
-  if(starLblA>0.05){
-    ctx.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},${0.35*starLblA})`;
+  const breathe=REDUCED?1:1+0.07*Math.sin(time*1.3+st.heat*9);
+  if(st.blackhole){
+    /* FTX: an event horizon with an accretion warning ring */
+    glow(x,y,sr*4.5,[255,170,110],0.14*detailA);
+    ctx.fillStyle='#020409';
+    ctx.beginPath();ctx.arc(x,y,sr*1.05,0,7);ctx.fill();
     ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(x-sr*2.6,y);ctx.lineTo(x+sr*2.6,y);ctx.moveTo(x,y-sr*2.6);ctx.lineTo(x,y+sr*2.6);ctx.stroke();
+    ctx.strokeStyle=`rgba(255,196,130,${0.55*detailA})`;
+    ctx.beginPath();ctx.ellipse(x,y,sr*1.8,sr*0.55,-0.4,0,7);ctx.stroke();
+    ctx.strokeStyle=`rgba(255,196,130,${0.28*detailA})`;
+    ctx.beginPath();ctx.ellipse(x,y,sr*2.4,sr*0.75,-0.4,0,7);ctx.stroke();
+    ctx.strokeStyle=`rgba(255,225,190,${0.5*detailA})`;
+    ctx.beginPath();ctx.arc(x,y,sr*1.12,0,7);ctx.stroke();
+  }else{
+    glow(x,y,sr*3.2*breathe,c,0.5*detailA);
+    if(sysA>0.3)glow(x,y,sr*1.9*breathe,[255,235,200],0.6*sysA);
+    /* diffraction spikes at galaxy scale only */
+    if(starLblA>0.05){
+      ctx.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},${0.35*starLblA})`;
+      ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(x-sr*2.6,y);ctx.lineTo(x+sr*2.6,y);ctx.moveTo(x,y-sr*2.6);ctx.lineTo(x,y+sr*2.6);ctx.stroke();
+    }
+    ctx.fillStyle=`rgba(255,252,244,${0.95*detailA})`;
+    ctx.beginPath();ctx.arc(x,y,Math.max(sr*0.55,1.5),0,7);ctx.fill();
   }
-  ctx.fillStyle=`rgba(255,252,244,${0.95*detailA})`;
-  ctx.beginPath();ctx.arc(x,y,Math.max(sr*0.55,1.5),0,7);ctx.fill();
   const isHov=hover&&hover.obj===st;
   if(isHov){ctx.strokeStyle=`rgba(125,224,255,${0.55*detailA})`;ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,sr*2.1,0,7);ctx.stroke();}
   label(x,y+sr*1.5+14,st.name,(isHov?0.95:0.6)*starLblA,10.5);
   if(sysA>0.25){
     label(x,y-sr*1.35-26,st.name,0.75*sysA,11.5);
-    label(x,y-sr*1.35-12,'the server — a star with planets',0.4*sysA,9.5,`rgba(141,151,181,${0.9*sysA})`);
+    label(x,y-sr*1.35-12,st.blackhole?'the event horizon — matter still missing':'the server — a star with planets',0.4*sysA,9.5,`rgba(141,151,181,${0.9*sysA})`);
   }
   if(detailA>0.35&&relSys<1.1){
     clickables.push({x,y,r:Math.max(sr*2.4,28),obj:st,kind:'star',label:st.name,sub:st.sub+' — click to enter the system'});
@@ -1304,6 +1498,16 @@ function drawStar(st,detailA,time){
       const sel=state.planet===pl;
       const hex=pl.dev.color;
       const rgb=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)];
+      /* fading trail along the orbit behind the planet */
+      const sgn=Math.sign(pl.speed)||1;
+      for(let s2=0;s2<3;s2++){
+        const a1=pl.ang-sgn*(0.06+s2*0.22), a0=a1-sgn*0.2;
+        ctx.strokeStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${(0.2-s2*0.055)*sysA})`;
+        ctx.lineWidth=1.4;
+        ctx.beginPath();
+        ctx.ellipse(x,y,orbR,orbR*pl.squash,0,Math.min(a0,a1),Math.max(a0,a1),false);
+        ctx.stroke();
+      }
       glow(px,py,pr*3.4,rgb,(sel?0.75:0.45)*sysA);
       ctx.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${sysA})`;
       ctx.beginPath();ctx.arc(px,py,pr,0,7);ctx.fill();
@@ -1381,11 +1585,29 @@ function frame(now){
   for(const p of sysPk){p.t+=p.speed*adt;if(p.t>1)p.t=0}
 
   /* dynamic spacetime bookkeeping */
+  frameDt=dt;
   const K=cam.z*SCALE;
   mouseW.x=cam.x+(mouse.x-CX)/K;
   mouseW.y=cam.y+(mouse.y-CY)/K;
   for(let i=ripples.length-1;i>=0;i--)if(time-ripples[i].t0>ripples[i].dur)ripples.splice(i,1);
   for(const cm of comets)cm.th+=cm.sp*adt;
+  for(const u of UNIVERSES)for(const spk of u.webSparks){
+    spk.t+=spk.sp*adt;
+    if(spk.t>1){spk.t=0;spk.ei=Math.floor(Math.random()*u.webEdges.length)}
+  }
+  /* the Cryptoverse heartbeat: blocks as consensus pulses through the fabric */
+  const cryU=UNIVERSES[UNIVERSES.length-1];
+  if(!REDUCED&&cam.z>0.28&&vis(cryU.x,cryU.y,cryU.rad*1.6)){
+    btcT-=dt;ethT-=dt;
+    if(btcT<=0){
+      btcT=10;lastBlockAt=time;fireRush=time;
+      emitRipple(cryU.galaxies[0].wx,cryU.galaxies[0].wy,1.3,'255,196,90');
+    }
+    if(ethT<=0){
+      ethT=1.2;
+      emitRipple(cryU.galaxies[1].wx,cryU.galaxies[1].wy,0.35,'160,150,255');
+    }
+  }
   sysGridBudget=3;
   let streak=0,zr=0;
   if(!REDUCED&&prevZ){
@@ -1408,10 +1630,10 @@ function frame(now){
     if(streak>0.08){
       const dx=x-CX,dy=y-CY,dl=Math.hypot(dx,dy)+1;
       const L=(4+dl*0.03)*streak*(zr>=0?1:-1);
-      ctx.strokeStyle=`rgba(214,224,248,${st.a*tw*0.85})`;
+      ctx.strokeStyle=`rgba(${st.col},${st.a*tw*0.85})`;
       ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-dx/dl*L,y-dy/dl*L);ctx.stroke();
     }else{
-      ctx.fillStyle=`rgba(214,224,248,${st.a*tw})`;
+      ctx.fillStyle=`rgba(${st.col},${st.a*tw})`;
       ctx.fillRect(x,y,st.r,st.r);
     }
   }
@@ -1447,6 +1669,15 @@ function frame(now){
     const wq=warp(bx,by,time);
     const x=w2sX(bx+wq[0]),y=w2sY(by+wq[1]);
     if(x<-20||x>W+20||y<-20||y>H+20)continue;
+    /* comet trail behind the photon */
+    for(let k2=3;k2>=1;k2--){
+      const tk=p.t-k2*0.02;
+      if(tk<0)continue;
+      const[tx2,ty2]=bezXY(p.e,p.dir>0?tk:1-tk);
+      const wq2=warp(tx2,ty2,time);
+      ctx.fillStyle=`rgba(125,224,255,${a*(0.3-k2*0.07)})`;
+      ctx.beginPath();ctx.arc(w2sX(tx2+wq2[0]),w2sY(ty2+wq2[1]),1.1,0,7);ctx.fill();
+    }
     glow(x,y,5.5,[125,224,255],0.85*a);
     ctx.fillStyle=`rgba(210,245,255,${a})`;
     ctx.beginPath();ctx.arc(x,y,1.3,0,7);ctx.fill();
@@ -1456,6 +1687,19 @@ function frame(now){
   for(const u of UNIVERSES){
     if(!vis(u.x,u.y,u.rad*3.2))continue;
     for(const g of u.galaxies)drawGalaxy(g,time);
+  }
+
+  /* visible ripple rings — gravitational waves you can see */
+  for(const rp of ripples){
+    const age=time-rp.t0;
+    const R=apparent(rp.v*age);
+    if(R<4||R>2600)continue;
+    const rx=w2sX(rp.wx),ry=w2sY(rp.wy);
+    ctx.strokeStyle=`rgba(${rp.rgb},${0.35*(1-age/rp.dur)})`;
+    ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.arc(rx,ry,R,0,7);ctx.stroke();
+    ctx.strokeStyle=`rgba(${rp.rgb},${0.14*(1-age/rp.dur)})`;
+    ctx.beginPath();ctx.arc(rx,ry,R*0.82,0,7);ctx.stroke();
   }
 
   /* context & HUD */
