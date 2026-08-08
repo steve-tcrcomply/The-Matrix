@@ -1,0 +1,1173 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Internet Universe</title>
+
+<style>
+/* ============================================================
+   THE INTERNET UNIVERSE — a field atlas
+   Deliberately single-theme: an observatory at night.
+   ============================================================ */
+:root{
+  --void:#04070f;
+  --void-2:#070b17;
+  --panel:#0c1223;
+  --panel-edge:rgba(141,151,181,.16);
+  --ink:#e9edf7;
+  --muted:#8d97b5;
+  --faint:#5a6382;
+  --core:#ffc76b;         /* galactic-core amber */
+  --core-dim:#c49048;
+  --photon:#7de0ff;       /* packet cyan */
+  --photon-dim:#3f8fb0;
+  --filament:#35508f;
+  --hairline:rgba(141,151,181,.18);
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:var(--void);
+  color:var(--ink);
+  font-family:var(--serif);
+  font-size:17px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:rgba(125,224,255,.25)}
+a{color:var(--photon);text-decoration-color:rgba(125,224,255,.4);text-underline-offset:3px}
+a:hover{text-decoration-color:var(--photon)}
+h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:.01em;text-wrap:balance;margin:0}
+p{margin:0}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--photon);outline-offset:3px;border-radius:2px}
+
+.eyebrow{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:var(--core);
+}
+.mono{font-family:var(--mono)}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- HERO / COSMOS ---------- */
+#cosmos-wrap{
+  position:relative;
+  height:100vh;height:100svh;
+  min-height:540px;
+  overflow:hidden;
+  background:var(--void);
+}
+#cosmos{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:manipulation}
+#cosmos.clickable{cursor:pointer}
+
+.hud{position:absolute;inset:0;pointer-events:none}
+.hud > *{pointer-events:auto}
+
+/* Atlas cover — visible only at universe level */
+#cover{
+  position:absolute;left:0;right:0;top:clamp(20px,6vh,64px);
+  text-align:center;
+  transition:opacity .5s ease, transform .5s ease;
+  pointer-events:none;
+}
+#cover .eyebrow{margin-bottom:10px}
+#cover h1{
+  font-size:clamp(30px,5.4vw,58px);
+  line-height:1.06;
+  color:var(--ink);
+  text-shadow:0 0 40px rgba(4,7,15,.9);
+}
+#cover h1 em{font-style:italic;color:var(--core)}
+#cover .sub{
+  margin-top:12px;
+  color:var(--muted);
+  font-size:clamp(14px,1.6vw,17px);
+  font-style:italic;
+}
+.hidden-hud{opacity:0 !important;transform:translateY(-8px);visibility:hidden;transition:opacity .4s ease, transform .4s ease, visibility 0s .4s}
+
+/* Breadcrumb — telescope readout */
+#crumbs{
+  position:absolute;top:16px;left:16px;
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  background:rgba(7,11,23,.72);
+  border:1px solid var(--panel-edge);
+  border-radius:4px;
+  padding:8px 12px;
+  backdrop-filter:blur(6px);
+  max-width:min(78vw,560px);
+}
+#crumbs .seg{background:none;border:0;padding:2px 2px;color:var(--photon);letter-spacing:inherit;text-transform:inherit;font:inherit}
+#crumbs .seg[disabled]{color:var(--ink);cursor:default}
+#crumbs .seg:not([disabled]):hover{text-decoration:underline;text-underline-offset:3px}
+#crumbs .sep{color:var(--faint)}
+
+#backBtn{
+  position:absolute;top:64px;left:16px;
+  display:none;align-items:center;gap:8px;
+  background:rgba(7,11,23,.72);
+  border:1px solid var(--panel-edge);
+  border-radius:4px;
+  color:var(--muted);
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  padding:8px 12px;
+  backdrop-filter:blur(6px);
+}
+#backBtn:hover{color:var(--ink);border-color:rgba(141,151,181,.4)}
+#backBtn.show{display:inline-flex}
+
+/* Context panel — the field notes */
+#panel{
+  position:absolute;right:16px;bottom:16px;
+  width:min(340px,calc(100vw - 32px));
+  background:rgba(12,18,35,.88);
+  border:1px solid var(--panel-edge);
+  border-radius:6px;
+  padding:16px 18px 15px;
+  backdrop-filter:blur(8px);
+  box-shadow:0 12px 40px rgba(0,0,0,.45);
+  transition:opacity .35s ease;
+}
+#panel .eyebrow{margin-bottom:6px}
+#panel h3{font-size:19px;line-height:1.25;margin-bottom:6px}
+#panel .desc{font-size:14px;color:var(--muted);line-height:1.55}
+#panel .stats{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:7px}
+#panel .stats li{
+  display:flex;justify-content:space-between;gap:14px;align-items:baseline;
+  font-size:12.5px;color:var(--muted);
+  border-top:1px dashed rgba(141,151,181,.14);padding-top:7px;
+}
+#panel .stats b{font-family:var(--mono);font-weight:500;color:var(--ink);font-size:12.5px;text-align:right;white-space:nowrap}
+#panel .hint{
+  margin-top:12px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--photon-dim);
+}
+
+/* Hover tooltip */
+#tip{
+  position:absolute;left:0;top:0;
+  transform:translate(-50%,calc(-100% - 14px));
+  background:rgba(7,11,23,.92);
+  border:1px solid var(--panel-edge);
+  border-radius:4px;
+  padding:6px 10px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+  color:var(--ink);
+  white-space:nowrap;
+  opacity:0;pointer-events:none;
+  transition:opacity .12s ease;
+}
+#tip small{display:block;color:var(--muted);letter-spacing:.04em}
+
+#scrollCue{
+  position:absolute;left:50%;bottom:14px;transform:translateX(-50%);
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--faint);
+  animation:cueFloat 2.6s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes cueFloat{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,6px)}}
+
+/* ---------- ATLAS PLATES (sections) ---------- */
+main{position:relative;z-index:1;background:linear-gradient(var(--void) 0%,var(--void-2) 120px,var(--void-2) 100%)}
+.plate{
+  max-width:1080px;
+  margin:0 auto;
+  padding:clamp(64px,10vh,120px) clamp(20px,4vw,40px);
+  border-top:1px solid var(--hairline);
+}
+.plate:first-of-type{border-top:0}
+.plate-head{max-width:66ch;margin-bottom:40px}
+.plate-head .eyebrow{display:block;margin-bottom:14px}
+.plate-head h2{font-size:clamp(26px,3.6vw,40px);line-height:1.12;margin-bottom:16px}
+.plate-head .lede{color:var(--muted);font-size:clamp(16px,1.9vw,19px);font-style:italic;line-height:1.6}
+.prose{max-width:66ch;color:var(--ink)}
+.prose p{margin-bottom:1.2em;color:#c6cde0}
+.prose p:last-child{margin-bottom:0}
+.prose strong{color:var(--ink)}
+.prose .k{font-family:var(--mono);font-size:.85em;color:var(--photon);letter-spacing:.02em}
+
+figure{margin:44px 0 10px}
+figcaption{
+  margin-top:14px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--faint);
+  text-transform:uppercase;
+}
+.scrollbox{overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:6px}
+.scrollbox svg{display:block}
+
+/* legend chips */
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--muted)}
+.legend .chip{display:inline-flex;align-items:center;gap:7px}
+.legend .swatch{width:10px;height:10px;border-radius:2px;display:inline-block}
+
+/* stat tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:40px 0 8px}
+.tile{
+  background:var(--panel);
+  border:1px solid var(--panel-edge);
+  border-radius:6px;
+  padding:18px 18px 16px;
+}
+.tile .t-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.tile .t-value{font-family:var(--mono);font-size:clamp(22px,2.6vw,30px);font-weight:600;color:var(--core);line-height:1.1}
+.tile .t-value.cyan{color:var(--photon)}
+.tile .t-note{margin-top:8px;font-size:12.5px;color:var(--muted);line-height:1.5}
+
+/* hop route (connection plate) */
+.route-wrap{min-width:980px}
+/* request steps — genuinely sequential, hence numbered */
+.steps{counter-reset:step;list-style:none;margin:36px 0 0;padding:0;max-width:66ch;display:grid;gap:0}
+.steps li{
+  counter-increment:step;
+  display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:baseline;
+  padding:13px 2px;border-top:1px dashed rgba(141,151,181,.16);
+}
+.steps li::before{
+  content:"0" counter(step);
+  font-family:var(--mono);font-size:12px;color:var(--core);letter-spacing:.1em;
+}
+.steps .s-name{font-size:15.5px}
+.steps .s-name small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px;line-height:1.5}
+.steps .s-time{font-family:var(--mono);font-size:12px;color:var(--photon);white-space:nowrap}
+
+/* live counter */
+#liveTile{border-color:rgba(125,224,255,.28)}
+#liveBytes{color:var(--photon)}
+
+footer{
+  border-top:1px solid var(--hairline);
+  background:var(--void-2);
+  padding:48px clamp(20px,4vw,40px) 64px;
+}
+.foot-inner{max-width:1080px;margin:0 auto;color:var(--faint);font-size:13px;line-height:1.7;max-width:70ch}
+.foot-inner .eyebrow{display:block;margin-bottom:12px;color:var(--faint)}
+
+@media (max-width:720px){
+  #panel{right:12px;left:12px;bottom:12px;width:auto;padding:13px 14px}
+  #panel .desc{display:none}
+  #panel .stats{grid-template-columns:1fr;gap:5px;margin-top:8px}
+  #panel .stats li:nth-child(n+3){display:none}
+  #crumbs{top:12px;left:12px}
+  #backBtn{top:56px;left:12px}
+  #scrollCue{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  #scrollCue{animation:none}
+  .flow-dash{animation:none !important}
+}
+</style>
+
+<!-- ============================ THE COSMOS ============================ -->
+<header id="cosmos-wrap" aria-label="Interactive map of the internet drawn as a universe">
+  <canvas id="cosmos"></canvas>
+
+  <div class="hud">
+    <div id="cover">
+      <span class="eyebrow">A Field Atlas · Observed 2025</span>
+      <h1>The Internet,<br>drawn as <em>a universe</em></h1>
+      <p class="sub">Every star a server, every filament a cable under the sea.</p>
+    </div>
+
+    <nav id="crumbs" aria-label="Map location"></nav>
+    <button id="backBtn" type="button">&#8598;&nbsp; Zoom out <span style="color:var(--faint)">· esc</span></button>
+
+    <aside id="panel" aria-live="polite"></aside>
+    <div id="tip" role="presentation"></div>
+    <div id="scrollCue">Scroll for the field notes &darr;</div>
+  </div>
+</header>
+
+<main>
+  <!-- ============================ PLATE I ============================ -->
+  <section class="plate" id="connected">
+    <div class="plate-head">
+      <span class="eyebrow">Plate I · Cartography</span>
+      <h2>How everything is connected</h2>
+      <p class="lede">The internet has the same architecture as the cosmos: almost everything is empty, and all the matter gathers along filaments.</p>
+    </div>
+    <div class="prose">
+      <p>There is no center of the universe, and no center of the internet — only <strong>gravity</strong>. Networks (about <span class="k">78,000</span> autonomous systems) fall toward one another wherever it is cheapest to exchange traffic, and those meeting places become the superclusters: internet exchange points like DE-CIX Frankfurt, where peak traffic passes <span class="k">17&nbsp;Tbps</span>. The role of gravity is played by a protocol, <strong>BGP</strong>, which does nothing but tell every network where every other network can be reached.</p>
+      <p>Between the clusters run the cosmic filaments: roughly <strong>600 submarine cables</strong>, about <span class="k">1.5&nbsp;million&nbsp;km</span> of glass on the seabed — enough to wrap the Earth 37 times. A single modern cable carries hundreds of terabits per second down fibers thinner than a human hair. Around <span class="k">95%</span> of intercontinental traffic goes under the ocean, not through space.</p>
+      <p>Below is one journey through that structure — a phone in Denver asking a server in Frankfurt for a web page, hop by hop:</p>
+    </div>
+
+    <figure>
+      <div class="scrollbox">
+        <svg id="routeSvg" class="route-wrap" viewBox="0 0 980 240" width="980" height="240" role="img" aria-label="Route diagram: a phone connects through a home router, ISP, national backbone, internet exchange, submarine cable, and edge network to reach a data center."></svg>
+      </div>
+      <figcaption>Fig. 1 — One request crossing the filaments. Round trip: ~140 ms, of which light in glass is the majority.</figcaption>
+    </figure>
+
+    <ol class="steps" aria-label="The steps of a single web request">
+      <li><span class="s-name">DNS lookup<small>“Where does this name live?” — the internet’s star catalogue, 13 root server identities in ~1,900 locations.</small></span><span class="s-time num">1–30 ms</span></li>
+      <li><span class="s-name">TCP handshake<small>Both ends agree to talk. One full round trip before a single byte of content.</small></span><span class="s-time num">1 RTT</span></li>
+      <li><span class="s-name">TLS encryption<small>The conversation is sealed. Nearly everything now travels encrypted.</small></span><span class="s-time num">1 RTT</span></li>
+      <li><span class="s-name">Request &amp; response<small>Your page returns as packets — independent photons that may take different paths and reassemble at your device.</small></span><span class="s-time num">~2/3 c</span></li>
+    </ol>
+  </section>
+
+  <!-- ============================ PLATE II ============================ -->
+  <section class="plate" id="data">
+    <div class="plate-head">
+      <span class="eyebrow">Plate II · Mass Survey</span>
+      <h2>How much data exists</h2>
+      <p class="lede">About 181 zettabytes — 181 followed by 21 zeros — and most of it, like most of the universe, is invisible.</p>
+    </div>
+    <div class="prose">
+      <p>The global datasphere — everything created, captured, copied and consumed — reached an estimated <strong>181&nbsp;zettabytes in 2025</strong>. Numbers that size stop meaning anything, so climb the ladder below: each rung is a thousand times the one before it.</p>
+    </div>
+
+    <figure>
+      <div class="scrollbox">
+        <svg id="ladderSvg" viewBox="0 0 960 330" width="960" height="330" style="min-width:720px;width:100%;height:auto" role="img" aria-label="Log-scale ladder from one kilobyte to 181 zettabytes."></svg>
+      </div>
+      <figcaption>Fig. 2 — Orders of magnitude. The bars are on a log scale: each equal step is ×1,000.</figcaption>
+    </figure>
+
+    <div class="prose" style="margin-top:36px">
+      <p><strong>The dark matter problem.</strong> Astronomers can only see ~5% of the universe; the rest is dark matter and dark energy. The web has the same ratio. Search engines index only the <em>surface web</em> — estimates put it at roughly 4–10% of all content. The rest is the <em>deep web</em>: your inbox, bank records, medical systems, paywalled archives, corporate databases — real mass, exerting real gravity, emitting no light.</p>
+    </div>
+
+    <figure>
+      <svg id="darkSvg" viewBox="0 0 960 120" width="960" height="120" style="max-width:100%;height:auto" role="img" aria-label="Stacked bar: about 5 percent surface web versus 95 percent deep web."></svg>
+      <div class="legend">
+        <span class="chip"><span class="swatch" style="background:var(--photon)"></span>Surface web — indexed, searchable (~5%)</span>
+        <span class="chip"><span class="swatch" style="background:#232c47"></span>Deep web — unindexed “dark matter” (~95%)</span>
+      </div>
+      <figcaption>Fig. 3 — The observable web vs. everything else.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============================ PLATE III ============================ -->
+  <section class="plate" id="expansion">
+    <div class="plate-head">
+      <span class="eyebrow">Plate III · Expansion Survey</span>
+      <h2>How fast it is expanding</h2>
+      <p class="lede">The Big Bang was October 29, 1969 — one message, two computers, and it crashed after two letters.</p>
+    </div>
+    <div class="prose">
+      <p>At 10:30 pm, a student at UCLA tried to send <span class="k">LOGIN</span> to a machine at Stanford. The system died after <span class="k">LO</span> — and so the first word ever transmitted on the internet, fittingly, was <em>“lo.”</em> Four computers made up the whole universe that night. Today <strong>5.6&nbsp;billion people</strong> — 68% of humanity — are inside it, along with some 18&nbsp;billion connected devices that outnumber us more than two to one.</p>
+      <p>And unlike the real universe, this one’s expansion is still accelerating: the datasphere roughly <strong>doubles every three years</strong>.</p>
+    </div>
+
+    <figure>
+      <div class="scrollbox">
+        <svg id="growthSvg" viewBox="0 0 960 360" width="960" height="360" style="min-width:720px;width:100%;height:auto" role="img" aria-label="Line chart of people online from 1990 to 2025 on a log scale, rising from 2.6 million to 5.6 billion."></svg>
+      </div>
+      <figcaption>Fig. 4 — People online, 1990–2025 (log scale). Milestones marked along the curve.</figcaption>
+    </figure>
+
+    <div class="tiles">
+      <div class="tile" id="liveTile">
+        <div class="t-label">Created since you opened this page</div>
+        <div class="t-value cyan num" id="liveBytes">0 TB</div>
+        <div class="t-note">Humanity now produces ≈402 million terabytes per day — about 4.7&nbsp;PB every second.</div>
+      </div>
+      <div class="tile">
+        <div class="t-label">Doubling time</div>
+        <div class="t-value num">~3 yrs</div>
+        <div class="t-note">Total stored data doubles roughly every three years. The cosmos takes ~10 billion years.</div>
+      </div>
+      <div class="tile">
+        <div class="t-label">Every minute, meanwhile</div>
+        <div class="t-value num">500 hrs</div>
+        <div class="t-note">of video uploaded to YouTube, ~5.9M Google searches, ~240M emails sent.</div>
+      </div>
+      <div class="tile">
+        <div class="t-label">Room to grow</div>
+        <div class="t-value num">3.4×10³⁸</div>
+        <div class="t-note">IPv6 addresses — enough to give every atom on Earth’s surface its own internet address.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="foot-inner">
+    <span class="eyebrow">Sources &amp; License Plate</span>
+    All figures are approximate, drawn from public 2024–2025 estimates: IDC Global DataSphere (~181 ZB), ITU (5.6 B people online), TeleGeography submarine cable survey (~600 cables, ~1.5 M km), DE-CIX traffic statistics, and published platform figures. The map above is a metaphor, not a topology — but only barely: the internet really is mostly empty space, strung together by light.
+  </div>
+</footer>
+
+<script>
+'use strict';
+/* ==================================================================
+   THE COSMOS — three-level drill-down canvas
+   Level 0: universe (galaxies = platform/cloud clusters)
+   Level 1: galaxy   (stars = services / data-center regions)
+   Level 2: system   (planets = client devices orbiting a service)
+   ================================================================== */
+
+/* ---------- tiny seeded PRNG so the sky is the same every night ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- device catalogue (the planets) ---------- */
+const DEVICES=[
+  {name:'A smartphone', color:'#9fd8ff', size:5.5,
+   desc:'Most of humanity’s window on the universe — the majority of the 5.6 B people online connect primarily by phone.',
+   stats:[['Last mile','Wi-Fi or 4G/5G radio'],['Typical latency to edge','20–60 ms'],['Share of web traffic','~60%+ mobile']]},
+  {name:'A laptop', color:'#d9e4ff', size:6,
+   desc:'Connects through a home router — its own little moon — then down the ISP’s fiber to the backbone.',
+   stats:[['Last mile','Wi-Fi → fiber/cable'],['Typical latency to edge','10–40 ms'],['Path','router → ISP → IXP']]},
+  {name:'A smart TV', color:'#ffb1a1', size:6.5,
+   desc:'Streaming video is the heaviest cargo in the universe — well over half of all downstream traffic.',
+   stats:[['4K stream','15–25 Mbps sustained'],['Served from','a CDN cache nearby'],['Video share of traffic','~65%']]},
+  {name:'An IoT sensor', color:'#a5f0c5', size:3.5,
+   desc:'A thermostat, a doorbell, a soil probe. Tiny voices, but ~18 billion of them — devices now outnumber people 2:1.',
+   stats:[['Payload','a few kB per report'],['Protocols','MQTT, LoRa, NB-IoT'],['Population','~18 B devices']]},
+  {name:'A game console', color:'#cdb4ff', size:6,
+   desc:'The most latency-obsessed object in orbit. For games, the speed of light is a gameplay mechanic.',
+   stats:[['Playable ping','< 50 ms'],['Sensitive to','jitter, not bandwidth'],['Trick','servers placed near players']]},
+  {name:'A satellite dish', color:'#ffe2a8', size:5,
+   desc:'For the off-grid: low-Earth-orbit constellations bounce packets 550 km up and back down.',
+   stats:[['Orbit','~550 km (LEO)'],['Latency','25–60 ms'],['Old GEO satellites','~600 ms']]},
+  {name:'A connected car', color:'#8fe8e0', size:5,
+   desc:'Maps, telemetry, software updates at highway speed — a planet that refuses to stay in orbit.',
+   stats:[['Link','4G/5G modem'],['Cargo','telemetry + OTA updates'],['Handovers','tower to tower, seamless']]},
+];
+
+/* ---------- the star catalogue ---------- */
+function G(id,name,sub,x,y,r,kind,tint,desc,stats,stars){return{id,name,sub,x,y,r,kind,tint,desc,stats,stars}}
+function S(name,sub,desc,stats,heat){return{name,sub,desc,stats,heat:heat||0.5}}
+
+const GALAXIES=[
+  G('core','The Backbone Core','Internet exchange points & Tier-1 carriers',0,0,0.16,'core',[255,199,107],
+    'The gravitational center of the map. Every galaxy peers here: exchange points where thousands of networks hand traffic to each other for free, and the Tier-1 carriers whose cables reach everywhere.',
+    [['Autonomous systems','~78,000 networks'],['Largest IXP peak','17+ Tbps (DE-CIX)'],['Rule of gravity','BGP routing']],
+    [ S('DE-CIX Frankfurt','Largest exchange by peak traffic','A single building complex where over 1,000 networks meet. At peak, more than 17 terabits cross it every second.',[['Peak traffic','17+ Tbps'],['Networks peering','1,000+'],['Founded','1995']],0.95),
+      S('AMS-IX Amsterdam','The Dutch supercluster','One of the oldest exchanges — Amsterdam became a hub because the cables came ashore nearby.',[['Peak traffic','~14 Tbps'],['Networks','870+']],0.8),
+      S('LINX London','Where transatlantic light lands','London terminates much of the light that crosses the Atlantic seabed.',[['Networks','950+'],['Role','EU ↔ US gateway']],0.75),
+      S('Equinix constellation','260+ interconnection data centers','Not one place but a constellation: neutral buildings where rival networks plug into each other.',[['Data centers','260+'],['Cross-connects','480,000+']],0.7),
+      S('Arelion — AS1299','A Tier-1 backbone','One of a handful of networks that can reach the entire internet without paying anyone for transit.',[['Rank','#1 most-connected AS'],['Reach','every routable network']],0.6),
+      S('Lumen — AS3356','A Tier-1 backbone','Vast fiber holdings across continents — part of the internet’s original long-haul skeleton.',[['Fiber route miles','~340,000'],['Role','Tier-1 transit']],0.55)]),
+  G('google','The Google Galaxy','Search, video & cloud — a grand spiral',-0.62,-0.36,0.14,'spiral',[125,224,255],
+    'The most-visited region of the observable internet. Its gravity is the search index itself: the closest thing the universe has to a map of everything.',
+    [['Searches per day','8.5+ billion'],['YouTube watched daily','~1 billion hours'],['Undersea cables owned','30+']],
+    [ S('Search','The star catalogue','8.5 billion questions a day, answered from an index of hundreds of billions of pages.',[['Queries/day','8.5 B+'],['Index size','100s of billions of pages']],0.95),
+      S('YouTube','The brightest media star','500 hours of video arrive every minute. A billion hours are watched every day.',[['Uploaded','500 hrs/min'],['Watched','~1 B hrs/day']],0.9),
+      S('Gmail','1.8 billion inboxes','A significant fraction of all human correspondence, in one star system.',[['Accounts','~1.8 B'],['Spam blocked','99.9%']],0.6),
+      S('Maps','The other cartography','Earth photographed, driven, and re-rendered — the map inside the map.',[['Monthly users','1 B+'],['Streetview','10M+ miles']],0.55),
+      S('Google Cloud','us-central1 & friends','The industrial zone: 40+ regions of rentable computing.',[['Regions','40+'],['Own fiber network','yes, global']],0.5),
+      S('Android & Play','3 billion handsets','The operating system of most of the phones orbiting every other star.',[['Active devices','3 B+']],0.45)]),
+  G('amazon','The Amazon Galaxy','The store, and the cloud that grew from it',0.6,-0.4,0.135,'spiral',[255,177,161],
+    'Began as a bookstore; became the landlord of the internet. A third of the cloud — and a good part of every other galaxy — runs on hardware in this one.',
+    [['Cloud market share','~31% (AWS)'],['S3 objects stored','100s of trillions'],['Regions','36+']],
+    [ S('AWS us-east-1','Northern Virginia — the heaviest star','The densest data-center cluster on Earth. When us-east-1 flickers, half the internet dims with it.',[['Role','largest cloud region'],['Data centers in N. Virginia','300+'],['Nickname','“the internet’s basement”']],1.0),
+      S('S3','The universal warehouse','Hundreds of trillions of stored objects — the closet where the internet keeps everything.',[['Objects','100s of trillions'],['Durability','“11 nines”']],0.8),
+      S('Amazon.com','The store itself','The original star, now a minor body beside the cloud that grew out of it.',[['Customers','300 M+']],0.6),
+      S('Prime Video','A streaming giant','Films and football, cached at the edge of every city.',[['Delivery','CDN edge caches']],0.5),
+      S('Alexa cloud','The listening nebula','Hundreds of millions of microphones, each a tiny planet phoning home.',[['Devices','500 M+ sold']],0.4)]),
+  G('microsoft','The Microsoft Galaxy','The office universe & Azure',0.78,0.16,0.125,'spiral',[205,180,255],
+    'Where the working day happens: documents, meetings, code, and the second-largest cloud.',
+    [['Azure regions','60+'],['Teams users','320 M+'],['GitHub developers','100 M+']],
+    [ S('Azure','The second cloud','More regions than any rival — computing sold by the second, everywhere.',[['Regions','60+'],['Market share','~25%']],0.9),
+      S('Microsoft 365','The paperwork nebula','Word, Excel, Outlook — the sediment layer of modern work.',[['Paid seats','400 M+']],0.7),
+      S('Teams','The meeting star','320 million people in meetings that could have been emails.',[['Users','320 M+']],0.55),
+      S('GitHub','Where the universe keeps its source code','Including, in all likelihood, the code that renders this page.',[['Developers','100 M+'],['Repositories','420 M+']],0.6),
+      S('LinkedIn','The networking cluster','A billion CVs in superposition.',[['Members','1 B+']],0.45),
+      S('Xbox network','The play star','Latency-critical, like all gaming bodies.',[['Playable ping','< 50 ms']],0.4)]),
+  G('meta','The Meta Galaxy','The social supercluster',-0.78,0.18,0.125,'spiral',[125,224,255],
+    'Nearly 4 billion people — half of humanity — pass through this galaxy monthly. Its mass is not servers but attention.',
+    [['People monthly','~3.9 B across apps'],['WhatsApp messages','100 B+/day'],['Own subsea cable','2Africa, 45,000 km']],
+    [ S('Facebook','The first supermassive social star','Three billion accounts — the largest census humanity has ever run on itself.',[['Monthly users','3 B+']],0.85),
+      S('Instagram','The image nebula','Two billion people trading light — photographs — across the filaments.',[['Monthly users','2 B+']],0.75),
+      S('WhatsApp','100 billion messages a day','More correspondence than the world’s postal systems, every day, encrypted end to end.',[['Messages/day','100 B+'],['Users','2.7 B+']],0.8),
+      S('Messenger','The other inbox','A billion more conversations.',[['Users','~1 B']],0.5),
+      S('Threads & the rest','Younger bodies','New stars ignite and fade quickly in this galaxy.',[['Threads users','275 M+']],0.35)]),
+  G('apple','The Apple Galaxy','Devices first, cloud second',-0.34,0.55,0.105,'spiral',[217,228,255],
+    'Unusual among galaxies: its mass lives at the edge, in two billion devices, with the cloud merely keeping them in sync.',
+    [['Active devices','2.2 B+'],['iMessages','billions/day'],['App Store apps','~1.8 M']],
+    [ S('iCloud','The sync star','Two billion devices quietly mirroring themselves — photos, keys, backups.',[['Active devices','2.2 B+']],0.7),
+      S('App Store','The marketplace','Where a trillion-dollar app economy clears.',[['Apps','~1.8 M']],0.6),
+      S('iMessage','The blue-bubble system','Billions of messages a day, end-to-end encrypted.',[['Volume','billions/day']],0.55),
+      S('Apple TV+ & Music','The media bodies','Streams riding the same CDN filaments as everyone else.',[['Delivery','edge caches']],0.4)]),
+  G('east','The Eastern Supercluster','The other half of the sky',0.38,0.56,0.135,'spiral',[255,199,107],
+    'A vast, partly separate region of space with its own super-apps, payment systems, and physics. More than a billion people experience the internet mostly from inside it.',
+    [['WeChat users','1.3 B+'],['Douyin/TikTok','1 B+ users'],['Singles’ Day GMV','$100 B+ scale']],
+    [ S('WeChat','The super-app star','Messaging, payments, identity, government services — an entire solar system inside one app.',[['Users','1.3 B+'],['Role','app-as-universe']],0.85),
+      S('Douyin / TikTok','The fastest-igniting star','From nothing to a billion users in five years — the fastest stellar formation on record.',[['Users','1 B+'],['Growth to 1B','~5 years']],0.8),
+      S('Taobao & Alibaba','The eastern marketplace','Commerce at a scale that bends its own logistics networks into orbit.',[['Annual buyers','~900 M']],0.7),
+      S('Baidu','The eastern catalogue','The dominant search index for a fifth of humanity.',[['Share (CN search)','~60%']],0.5),
+      S('Tencent Cloud & QQ','The elder bodies','Infrastructure and an instant messenger older than most of its users.',[['QQ founded','1999']],0.4)]),
+  G('openweb','The Open Web','An irregular galaxy, held together by volunteers',-0.06,-0.66,0.12,'irregular',[165,240,197],
+    'No corporate gravity here — an irregular galaxy of personal sites, wikis and archives, orbiting nothing. Older than every other galaxy on this map, and the reason they exist.',
+    [['Websites (total)','~1.2 B, ~200 M active'],['Run on WordPress','~43% of all sites'],['Wikipedia articles','60 M+']],
+    [ S('Wikipedia','The miracle star','The only non-commercial body among the brightest objects in the sky. 60 million articles, written free, by hand.',[['Articles','60 M+'],['Languages','300+'],['Rank','top-10 site']],0.8),
+      S('The blogosphere','A dust cloud of dwarf stars','Hundreds of millions of personal sites — most dark, all still there.',[['WordPress share','~43% of the web']],0.5),
+      S('Internet Archive','The fossil record','The Wayback Machine holds 900+ billion snapshots of pages the way they used to be.',[['Pages archived','900 B+'],['Founded','1996']],0.6),
+      S('The Fediverse','A self-governing cluster','Thousands of small servers federating into one loose social sky.',[['Model','no owner at all']],0.35),
+      S('Email & RSS','The background radiation','Protocols from the early universe, still humming beneath everything.',[['Email age','since 1971']],0.4)]),
+  G('edge','The Edge Nebula','CDNs — the universe’s shortcut',0.02,0.8,0.1,'nebula',[125,224,255],
+    'Not a galaxy but a nebula spread thin across the whole sky: content delivery networks that cache copies of everything close to everyone, so light doesn’t have to cross the ocean twice.',
+    [['Cloudflare cities','330+'],['Web behind a CDN','most of it'],['Netflix Open Connect','caches inside ISPs']],
+    [ S('Cloudflare','The everywhere star','Sits in front of roughly a fifth of the web, absorbing attacks and shaving milliseconds.',[['Cities','330+'],['Share of web','~20%']],0.75),
+      S('Akamai','The original shortcut','Invented the CDN in 1998, when the ocean was slower.',[['Founded','1998'],['Servers','~350,000']],0.6),
+      S('Netflix Open Connect','The stream cache','Netflix ships whole racks of films into ISPs’ buildings, so the night’s viewing never crosses the backbone.',[['Downstream traffic','~15% globally']],0.65),
+      S('Fastly & friends','The fast small bodies','Smaller nebulae with the same physics: be near, be quick.',[['Physics','proximity = speed']],0.4)])
+];
+
+/* filaments between galaxies (indices into GALAXIES) */
+const EDGES=[[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,8],[1,4],[2,3],[1,7],[2,6],[3,6],[4,5],[5,7],[6,8],[1,2],[4,7]];
+
+/* ---------- canvas setup ---------- */
+const canvas=document.getElementById('cosmos');
+const ctx=canvas.getContext('2d');
+let W=0,H=0,DPR=1,SCALE=1,CX=0,CY=0;
+
+function resize(){
+  DPR=Math.min(devicePixelRatio||1,2);
+  W=canvas.clientWidth;H=canvas.clientHeight;
+  canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR);
+  SCALE=Math.min(W,H)*0.5;
+  CX=W/2;CY=H/2*0.96;
+  buildStarfield();
+}
+addEventListener('resize',resize);
+
+/* ---------- background starfield (websites) ---------- */
+let starfield=[];
+function buildStarfield(){
+  const rnd=mulberry32(20251029);
+  starfield=[];
+  const n=Math.round(W*H/4200);
+  for(let i=0;i<n;i++){
+    starfield.push({x:rnd()*W,y:rnd()*H,r:rnd()<0.85?rnd()*0.9+0.3:rnd()*1.6+0.8,
+      a:0.12+rnd()*0.5,tw:rnd()*Math.PI*2,ts:0.3+rnd()*1.2,layer:rnd()<0.5?0.15:0.35});
+  }
+}
+
+/* ---------- precomputed galaxy particle clouds ---------- */
+for(const [gi,g] of GALAXIES.entries()){
+  const rnd=mulberry32(1000+gi*77);
+  g.particles=[];
+  const n=g.kind==='core'?220:g.kind==='nebula'?150:240;
+  g.tilt=rnd()*Math.PI;
+  g.squash=g.kind==='nebula'?0.85:0.42+rnd()*0.16;
+  for(let i=0;i<n;i++){
+    let px,py,heat;
+    if(g.kind==='core'){
+      const a=rnd()*Math.PI*2,rr=Math.pow(rnd(),1.6);
+      px=Math.cos(a)*rr;py=Math.sin(a)*rr;heat=1-rr*0.7;
+    }else if(g.kind==='nebula'){
+      const a=rnd()*Math.PI*2,rr=Math.sqrt(rnd());
+      px=Math.cos(a)*rr*1.3;py=Math.sin(a)*rr*0.75;heat=0.35+rnd()*0.3;
+    }else if(g.kind==='irregular'){
+      const cx=(rnd()-0.5)*1.2,cyy=(rnd()-0.5)*1.2;
+      px=cx+(rnd()-0.5)*0.5;py=cyy+(rnd()-0.5)*0.5;heat=0.3+rnd()*0.45;
+    }else{ /* spiral */
+      const arm=i%2,t=Math.pow(rnd(),0.75);
+      const ang=t*3.6*Math.PI/2+arm*Math.PI+(rnd()-0.5)*0.55;
+      const rr=0.12+t*0.92;
+      px=Math.cos(ang)*rr;py=Math.sin(ang)*rr;heat=1-t*0.8;
+    }
+    /* apply squash + tilt */
+    py*=g.squash;
+    const c=Math.cos(g.tilt),s=Math.sin(g.tilt);
+    g.particles.push({x:px*c-py*s,y:px*s+py*c,heat,sz:rnd()<0.9?0.55+rnd()*0.9:1.3+rnd()*1.2,a:0.35+rnd()*0.65,tw:rnd()*7});
+  }
+  /* star (service) layout inside the galaxy — a wide spiral */
+  const rnd2=mulberry32(5000+gi*13);
+  const m=g.stars.length;
+  g.stars.forEach((st,si)=>{
+    if(si===0){st.gx=0;st.gy=0;}
+    else{
+      const ang=(si-1)/(m-1)*Math.PI*1.85+rnd2()*0.5+g.tilt;
+      const rr=0.34+((si-1)/(m-1))*0.6;
+      st.gx=Math.cos(ang)*rr; st.gy=Math.sin(ang)*rr*0.72;
+    }
+    /* planets for this star */
+    const pn=3+Math.floor(rnd2()*3);
+    st.planets=[];
+    const used=new Set();
+    for(let k=0;k<pn;k++){
+      let di=Math.floor(rnd2()*DEVICES.length);
+      while(used.has(di))di=(di+1)%DEVICES.length;
+      used.add(di);
+      st.planets.push({dev:DEVICES[di],orbit:0.34+k*0.16+rnd2()*0.05,
+        ang:rnd2()*Math.PI*2,speed:(0.12+rnd2()*0.1)/(1+k*0.6)*(rnd2()<0.5?1:-1),
+        squash:0.94});
+    }
+  });
+}
+
+/* ---------- packets on filaments ---------- */
+const rndP=mulberry32(42);
+for(const e of EDGES){
+  const a=GALAXIES[e[0]],b=GALAXIES[e[1]];
+  const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+  const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1;
+  const bend=(rndP()-0.5)*0.5;
+  e.cx=mx-dy/len*bend; e.cy=my+dx/len*bend;
+}
+const packets=[];
+for(let i=0;i<46;i++){
+  packets.push({e:EDGES[Math.floor(rndP()*EDGES.length)],t:rndP(),speed:0.10+rndP()*0.16,dir:rndP()<0.5?1:-1});
+}
+function bez(e,t){
+  const a=GALAXIES[e[0]],b=GALAXIES[e[1]],u=1-t;
+  return [u*u*a.x+2*u*t*e.cx+t*t*b.x, u*u*a.y+2*u*t*e.cy+t*t*b.y];
+}
+
+/* local traffic inside a galaxy (between its stars) */
+const localPk=[];
+for(let i=0;i<14;i++)localPk.push({a:0,b:0,t:Math.random(),speed:0.25+Math.random()*0.3});
+function seedLocal(g){
+  const m=g.stars.length;
+  for(const p of localPk){p.a=Math.floor(Math.random()*m);p.b=Math.floor(Math.random()*m);if(p.b===p.a)p.b=(p.b+1)%m;p.t=Math.random();}
+}
+
+/* request/response photons in a star system */
+const sysPk=[];
+function seedSys(star){
+  sysPk.length=0;
+  star.planets.forEach((pl,pi)=>{
+    const n=2+(pi%2);
+    for(let k=0;k<n;k++)sysPk.push({pi,t:Math.random(),speed:0.5+Math.random()*0.5,dir:Math.random()<0.5?1:-1});
+  });
+}
+
+/* ---------- navigation state ---------- */
+const nav={level:0,g:null,s:null,planet:null};
+let trans=null; /* {dir:+1 in / -1 out, t, fromLevel, pivot:{x,y} screen coords of the object we dive into} */
+const Z=6.5;
+function easeInOut(t){return t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2}
+
+function screenPosOfGalaxy(g){return[CX+g.x*SCALE*0.86,CY+g.y*SCALE*0.86]}
+function screenPosOfStar(st){return[CX+st.gx*SCALE*0.78,CY+st.gy*SCALE*0.78]}
+
+function goIn(target){
+  if(trans)return;
+  if(nav.level===0){nav.g=target;seedLocal(target);}
+  else if(nav.level===1){nav.s=target;seedSys(target);}
+  else return;
+  const pivot=nav.level===0?screenPosOfGalaxy(target):screenPosOfStar(target);
+  trans={dir:1,t:0,pivot:{x:pivot[0],y:pivot[1]}};
+  nav.level++;nav.planet=null;
+  if(REDUCED)trans.t=1;
+  syncHud();
+}
+function goOut(toLevel){
+  if(trans||nav.level===0)return;
+  if(toLevel==null)toLevel=nav.level-1;
+  toLevel=Math.max(0,Math.min(toLevel,nav.level-1));
+  /* stepwise zoom-outs land at the right pivot each time */
+  const stepOut=()=>{
+    const obj=nav.level===1?nav.g:nav.s;
+    const pivot=nav.level===1?screenPosOfGalaxy(obj):screenPosOfStar(obj);
+    trans={dir:-1,t:0,pivot:{x:pivot[0],y:pivot[1]},chainTo:toLevel};
+    nav.level--;nav.planet=null;
+    if(REDUCED)trans.t=1;
+    syncHud();
+  };
+  stepOut();
+}
+
+/* ---------- HUD ---------- */
+const crumbsEl=document.getElementById('crumbs');
+const backBtn=document.getElementById('backBtn');
+const panelEl=document.getElementById('panel');
+const coverEl=document.getElementById('cover');
+const cueEl=document.getElementById('scrollCue');
+const tipEl=document.getElementById('tip');
+
+backBtn.addEventListener('click',()=>goOut());
+addEventListener('keydown',e=>{if(e.key==='Escape')goOut()});
+
+function crumb(label,level,disabled){
+  const b=document.createElement('button');
+  b.className='seg';b.type='button';b.textContent=label;
+  if(disabled)b.disabled=true;
+  else b.addEventListener('click',()=>goOut(level));
+  return b;
+}
+function sep(){const s=document.createElement('span');s.className='sep';s.textContent='›';return s}
+
+function syncHud(){
+  crumbsEl.replaceChildren();
+  crumbsEl.appendChild(crumb('Universe',0,nav.level===0));
+  if(nav.level>=1){crumbsEl.appendChild(sep());crumbsEl.appendChild(crumb(nav.g.name.replace(/^The /,''),1,nav.level===1))}
+  if(nav.level>=2){crumbsEl.appendChild(sep());crumbsEl.appendChild(crumb(nav.s.name,2,true))}
+  if(nav.planet){crumbsEl.appendChild(sep());const s=document.createElement('span');s.className='seg';s.style.color='var(--core)';s.textContent=nav.planet.dev.name;crumbsEl.appendChild(s)}
+  backBtn.classList.toggle('show',nav.level>0);
+  coverEl.classList.toggle('hidden-hud',nav.level>0);
+  cueEl.classList.toggle('hidden-hud',nav.level>0);
+  renderPanel();
+}
+
+function panelHTML(eyebrow,title,desc,stats,hint){
+  let h=`<span class="eyebrow">${eyebrow}</span><h3>${title}</h3><p class="desc">${desc}</p>`;
+  if(stats&&stats.length){h+=`<ul class="stats">${stats.map(s=>`<li><span>${s[0]}</span><b class="num">${s[1]}</b></li>`).join('')}</ul>`}
+  if(hint)h+=`<p class="hint">${hint}</p>`;
+  return h;
+}
+function renderPanel(){
+  let h='';
+  if(nav.planet){
+    const d=nav.planet.dev;
+    h=panelHTML('Planet · a client device',d.name,d.desc+' Every request it makes travels as light in glass at roughly two-thirds the speed of light.',d.stats,'Click elsewhere to release · esc zooms out');
+  }else if(nav.level===0){
+    h=panelHTML('You are looking at · the observable internet','Galaxies, filaments, light',
+      'Each galaxy is a cluster of servers and services; the filaments between them are submarine cables; every moving spark is data in flight.',
+      [['People inside','5.6 B (68% of humanity)'],['Websites','~1.2 B (~200 M active)'],['Submarine cables','~600 · 1.5 M km'],['All stored data','~181 zettabytes']],
+      'Click a galaxy to fall in');
+  }else if(nav.level===1){
+    h=panelHTML('Galaxy · '+nav.g.sub,nav.g.name,nav.g.desc,nav.g.stats,'Click a star to enter its system');
+  }else{
+    h=panelHTML('Star · '+nav.s.sub,nav.s.name,nav.s.desc,nav.s.stats,'Click a planet — each is a device connecting to this service');
+  }
+  panelEl.innerHTML=h;
+}
+
+/* ---------- hit testing / pointer ---------- */
+let clickables=[]; /* rebuilt each frame: {x,y,r,obj,kind,label,sub} */
+let hover=null;
+let mouse={x:-1e4,y:-1e4};
+
+canvas.addEventListener('pointermove',e=>{
+  const rect=canvas.getBoundingClientRect();
+  mouse.x=e.clientX-rect.left;mouse.y=e.clientY-rect.top;
+});
+canvas.addEventListener('pointerleave',()=>{mouse.x=-1e4;mouse.y=-1e4});
+function pickAt(x,y){
+  let best=null,bd=1e9;
+  for(const c of clickables){
+    const d=Math.hypot(x-c.x,y-c.y);
+    if(d<c.r&&d<bd){bd=d;best=c}
+  }
+  return best;
+}
+canvas.addEventListener('click',e=>{
+  if(trans)return;
+  const rect=canvas.getBoundingClientRect();
+  /* pick from the click's own coordinates — touch taps have no prior hover frame */
+  const target=pickAt(e.clientX-rect.left,e.clientY-rect.top);
+  if(target){
+    if(target.kind==='planet'){nav.planet=target.obj;syncHud();}
+    else goIn(target.obj);
+  }else if(nav.planet){nav.planet=null;syncHud();}
+});
+
+function pickHover(){
+  hover=null;
+  if(trans){canvas.classList.remove('clickable');tipEl.style.opacity=0;return}
+  hover=pickAt(mouse.x,mouse.y);
+  canvas.classList.toggle('clickable',!!hover);
+  if(hover){
+    tipEl.innerHTML=`${hover.label}<small>${hover.sub}</small>`;
+    tipEl.style.opacity=1;
+    tipEl.style.transform=`translate(${Math.round(hover.x)}px,${Math.round(hover.y-hover.r)}px) translate(-50%,-100%) translateY(-10px)`;
+  }else tipEl.style.opacity=0;
+}
+
+/* ---------- drawing helpers ---------- */
+function glow(x,y,r,rgb,a){
+  const g=ctx.createRadialGradient(x,y,0,x,y,r);
+  g.addColorStop(0,`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`);
+  g.addColorStop(1,`rgba(${rgb[0]},${rgb[1]},${rgb[2]},0)`);
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+}
+function heatColor(heat,tint){
+  /* hot center = amber-white, cool rim = blue-white, tinted per-galaxy */
+  const r=Math.round(200+heat*55), gg=Math.round(190+heat*40), b=Math.round(255-heat*70);
+  return [Math.round((r+tint[0])/2),Math.round((gg+tint[1])/2),Math.round((b+tint[2])/2)];
+}
+function label(x,y,text,alpha,size,color){
+  ctx.font=`${size||11}px ui-monospace, Menlo, monospace`;
+  ctx.textAlign='center';
+  ctx.fillStyle=color||`rgba(233,237,247,${alpha})`;
+  ctx.fillText(text.toUpperCase(),x,y);
+}
+
+/* ---------- scene renderers ----------
+   each draws in SCREEN coords, given (originX, originY, scale, alpha),
+   and registers clickables when alpha is high & it's the active level */
+function drawUniverse(ox,oy,s,alpha,active,time){
+  ctx.globalAlpha=alpha;
+  /* filaments */
+  ctx.lineWidth=1;
+  for(const e of EDGES){
+    const a=GALAXIES[e[0]],b=GALAXIES[e[1]];
+    ctx.strokeStyle=`rgba(76,110,180,${0.26*alpha})`;
+    ctx.beginPath();
+    ctx.moveTo(ox+a.x*SCALE*0.86*s,oy+a.y*SCALE*0.86*s);
+    ctx.quadraticCurveTo(ox+e.cx*SCALE*0.86*s,oy+e.cy*SCALE*0.86*s,ox+b.x*SCALE*0.86*s,oy+b.y*SCALE*0.86*s);
+    ctx.stroke();
+  }
+  /* packets */
+  for(const p of packets){
+    const[bx,by]=bez(p.e,p.dir>0?p.t:1-p.t);
+    const x=ox+bx*SCALE*0.86*s,y=oy+by*SCALE*0.86*s;
+    glow(x,y,5.5*Math.min(s,1.4),[125,224,255],0.85*alpha);
+    ctx.fillStyle=`rgba(210,245,255,${alpha})`;
+    ctx.beginPath();ctx.arc(x,y,1.3,0,7);ctx.fill();
+  }
+  /* galaxies */
+  for(const g of GALAXIES){
+    const gx=ox+g.x*SCALE*0.86*s, gy=oy+g.y*SCALE*0.86*s;
+    const gr=g.r*SCALE*s;
+    glow(gx,gy,gr*2.4,g.tint,(g.kind==='core'?0.34:0.2)*alpha);
+    const spin=REDUCED?0:time*(g.kind==='core'?0.02:0.035);
+    const cs=Math.cos(spin),sn=Math.sin(spin);
+    for(const pt of g.particles){
+      const rx=pt.x*cs-pt.y*sn, ry=pt.x*sn+pt.y*cs;
+      const c=heatColor(pt.heat,g.tint);
+      const tw=REDUCED?1:0.75+0.25*Math.sin(time*1.7+pt.tw);
+      ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${pt.a*alpha*tw})`;
+      ctx.beginPath();ctx.arc(gx+rx*gr,gy+ry*gr,pt.sz*Math.min(s,1.6),0,7);ctx.fill();
+    }
+    if(g.kind==='core')glow(gx,gy,gr*0.55,[255,220,160],0.7*alpha);
+    const isHov=active&&hover&&hover.obj===g;
+    if(isHov){ctx.lineWidth=1;ctx.strokeStyle=`rgba(125,224,255,${0.5*alpha})`;ctx.beginPath();ctx.arc(gx,gy,gr*1.35,0,7);ctx.stroke();}
+    label(gx,gy+gr*1.45+14,g.name.replace(/^The /,''),(isHov?0.95:0.55)*alpha,11);
+    if(active)clickables.push({x:gx,y:gy,r:Math.max(gr*1.3,34),obj:g,kind:'galaxy',label:g.name,sub:g.sub+' — click to fall in'});
+  }
+  ctx.globalAlpha=1;
+}
+
+function drawGalaxy(g,ox,oy,s,alpha,active,time){
+  if(!g)return;
+  ctx.globalAlpha=alpha;
+  const R=SCALE*0.78*s;
+  /* backdrop: the galaxy's own dust, enlarged */
+  glow(ox,oy,R*1.15,g.tint,0.13*alpha);
+  const spin=REDUCED?0:time*0.008;
+  const cs=Math.cos(spin),sn=Math.sin(spin);
+  for(const pt of g.particles){
+    const rx=pt.x*cs-pt.y*sn, ry=pt.x*sn+pt.y*cs;
+    const c=heatColor(pt.heat,g.tint);
+    ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${pt.a*0.34*alpha})`;
+    ctx.beginPath();ctx.arc(ox+rx*R*1.05,oy+ry*R*1.05,pt.sz*1.5*Math.min(s,1.3),0,7);ctx.fill();
+  }
+  /* local traffic between stars */
+  for(const p of localPk){
+    const a=g.stars[p.a],b=g.stars[p.b];
+    if(!a||!b)continue;
+    const x1=ox+a.gx*R,y1=oy+a.gy*R,x2=ox+b.gx*R,y2=oy+b.gy*R;
+    ctx.strokeStyle=`rgba(76,110,180,${0.16*alpha})`;
+    ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+    const x=x1+(x2-x1)*p.t,y=y1+(y2-y1)*p.t;
+    glow(x,y,4.5,[125,224,255],0.7*alpha);
+  }
+  /* service stars */
+  g.stars.forEach((st,si)=>{
+    const x=ox+st.gx*R, y=oy+st.gy*R;
+    const sr=(7+st.heat*9)*Math.min(s,1.3);
+    const c=heatColor(st.heat,g.tint);
+    glow(x,y,sr*3.2,c,0.5*alpha);
+    /* diffraction spikes */
+    ctx.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},${0.35*alpha})`;
+    ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(x-sr*2.6,y);ctx.lineTo(x+sr*2.6,y);ctx.moveTo(x,y-sr*2.6);ctx.lineTo(x,y+sr*2.6);ctx.stroke();
+    ctx.fillStyle=`rgba(255,255,255,${0.95*alpha})`;
+    ctx.beginPath();ctx.arc(x,y,sr*0.42,0,7);ctx.fill();
+    const isHov=active&&hover&&hover.obj===st;
+    if(isHov){ctx.strokeStyle=`rgba(125,224,255,${0.55*alpha})`;ctx.beginPath();ctx.arc(x,y,sr*2.1,0,7);ctx.stroke();}
+    label(x,y+sr*2.4+13,st.name,(isHov?0.95:0.6)*alpha,10.5);
+    if(active)clickables.push({x,y,r:Math.max(sr*2.4,30),obj:st,kind:'star',label:st.name,sub:st.sub+' — click to enter the system'});
+  });
+  ctx.globalAlpha=1;
+}
+
+function drawSystem(st,ox,oy,s,alpha,active,time){
+  if(!st)return;
+  ctx.globalAlpha=alpha;
+  const R=SCALE*0.9*s;
+  const g=nav.g||GALAXIES[0];
+  const c=heatColor(st.heat,g.tint);
+  /* the sun (the service) */
+  const sunR=Math.max(26,SCALE*0.085)*Math.min(s,1.2);
+  glow(ox,oy,sunR*5,c,0.5*alpha);
+  glow(ox,oy,sunR*1.9,[255,235,200],0.85*alpha);
+  ctx.fillStyle=`rgba(255,250,240,${alpha})`;
+  ctx.beginPath();ctx.arc(ox,oy,sunR*0.75,0,7);ctx.fill();
+  label(ox,oy-sunR*1.9-30,st.name,0.75*alpha,11.5);
+  label(ox,oy-sunR*1.9-15,'the server — a star with planets',0.4*alpha,9.5,`rgba(141,151,181,${0.9*alpha})`);
+  /* orbits + planets */
+  st.planets.forEach((pl,pi)=>{
+    const orbR=pl.orbit*R;
+    ctx.strokeStyle=`rgba(141,151,181,${0.14*alpha})`;
+    ctx.lineWidth=1;
+    ctx.beginPath();ctx.ellipse(ox,oy,orbR,orbR*pl.squash,0,0,7);ctx.stroke();
+    const x=ox+Math.cos(pl.ang)*orbR, y=oy+Math.sin(pl.ang)*orbR*pl.squash;
+    const pr=pl.dev.size*Math.min(s,1.25);
+    const sel=nav.planet===pl;
+    const hex=pl.dev.color;
+    const rgb=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)];
+    glow(x,y,pr*3.4,rgb,(sel?0.75:0.45)*alpha);
+    ctx.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
+    ctx.beginPath();ctx.arc(x,y,pr,0,7);ctx.fill();
+    /* night side */
+    ctx.fillStyle=`rgba(4,7,15,${0.45*alpha})`;
+    ctx.beginPath();ctx.arc(x+pr*0.35*Math.sign(x-ox||1),y,pr*0.92,0,7);ctx.fill();
+    const isHov=active&&hover&&hover.obj===pl;
+    if(isHov||sel){ctx.strokeStyle=`rgba(${sel?'255,199,107':'125,224,255'},${0.6*alpha})`;ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,pr+5,0,7);ctx.stroke();}
+    label(x,y-pr-9,pl.dev.name.replace(/^An? /,''),(isHov||sel?0.9:0.45)*alpha,9.5);
+    if(active)clickables.push({x,y,r:Math.max(pr+12,24),obj:pl,kind:'planet',label:pl.dev.name,sub:'a device in orbit — click for its story'});
+  });
+  /* photons: requests out & responses back along planet-sun lines */
+  for(const p of sysPk){
+    const pl=st.planets[p.pi];if(!pl)continue;
+    const orbR=pl.orbit*R;
+    const px=ox+Math.cos(pl.ang)*orbR, py=oy+Math.sin(pl.ang)*orbR*pl.squash;
+    const t=p.dir>0?p.t:1-p.t;
+    const x=ox+(px-ox)*t, y=oy+(py-oy)*t;
+    glow(x,y,4,[125,224,255],0.8*alpha);
+  }
+  ctx.globalAlpha=1;
+}
+
+/* ---------- main loop ---------- */
+let lastT=performance.now();
+let running=true;
+const io=new IntersectionObserver(en=>{running=en[0].isIntersecting},{threshold:0.02});
+io.observe(canvas);
+document.addEventListener('visibilitychange',()=>{lastT=performance.now()});
+
+function frame(now){
+  requestAnimationFrame(frame);
+  if(!running)return;
+  let dt=Math.min((now-lastT)/1000,0.05);lastT=now;
+  if(REDUCED)dt*=1; /* transitions still advance; ambient motion is gated below */
+  const time=now/1000;
+  const adt=REDUCED?0:dt; /* ambient dt */
+
+  /* advance ambient motion */
+  for(const p of packets){p.t+=p.speed*adt;if(p.t>1){p.t=0;p.e=EDGES[Math.floor(Math.random()*EDGES.length)];p.dir=Math.random()<0.5?1:-1}}
+  for(const p of localPk){p.t+=p.speed*adt;if(p.t>1&&nav.g){p.t=0;const m=nav.g.stars.length;p.a=Math.floor(Math.random()*m);p.b=(p.a+1+Math.floor(Math.random()*(m-1)))%m}}
+  for(const p of sysPk){p.t+=p.speed*adt;if(p.t>1)p.t=0}
+  if(nav.s)for(const pl of nav.s.planets)pl.ang+=pl.speed*adt;
+
+  /* transition */
+  let tr=0;
+  if(trans){
+    trans.t+=dt/0.85;
+    if(trans.t>=1){
+      const chain=trans.chainTo;
+      trans=null;
+      if(chain!=null&&nav.level>chain)goOut(chain);
+    }else tr=easeInOut(trans.t);
+  }
+
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.fillStyle='#04070f';
+  ctx.fillRect(0,0,W,H);
+
+  /* deep starfield */
+  for(const st of starfield){
+    const tw=REDUCED?1:0.7+0.3*Math.sin(time*st.ts+st.tw);
+    ctx.fillStyle=`rgba(214,224,248,${st.a*tw})`;
+    ctx.fillRect(st.x,st.y,st.r,st.r);
+  }
+
+  clickables=[];
+
+  /* which scenes to draw, at what transform */
+  const L=nav.level;
+  const drawScene=(lvl,ox,oy,s,alpha,active)=>{
+    if(lvl===0)drawUniverse(ox,oy,s,alpha,active,time);
+    else if(lvl===1)drawGalaxy(nav.g,ox,oy,s,alpha,active,time);
+    else drawSystem(nav.s,ox,oy,s,alpha,active,time);
+  };
+
+  if(!trans){
+    drawScene(L,CX,CY,1,1,true);
+  }else if(trans&&tr>=0){
+    const p=trans.pivot;
+    if(trans.dir>0){
+      /* zooming IN: outgoing level L-1 scales up around the pivot & fades;
+         incoming level L grows from 1/Z to 1, riding the same anchor toward center */
+      const s1=1+(Z-1)*tr;
+      const ax=p.x+(CX-p.x)*tr, ay=p.y+(CY-p.y)*tr;
+      const outA=Math.max(0,1-tr*1.9);
+      ctx.save();
+      ctx.translate(ax,ay);ctx.scale(s1,s1);ctx.translate(-p.x,-p.y);
+      drawScene(L-1,CX,CY,1,outA,false);
+      ctx.restore();
+      const sc=1/Z+(1-1/Z)*tr;
+      const inA=Math.max(0,(tr-0.25)/0.75);
+      drawScene(L,ax,ay,sc,inA,false);
+    }else{
+      /* zooming OUT: incoming level L (the wider view) scales down from Z to 1 around pivot;
+         outgoing level L+1 shrinks into the pivot */
+      const s1=Z-(Z-1)*tr;
+      const ax=CX+(p.x-CX)*tr, ay=CY+(p.y-CY)*tr;
+      const inA=Math.min(1,tr*1.9);
+      ctx.save();
+      ctx.translate(ax,ay);ctx.scale(s1,s1);ctx.translate(-p.x,-p.y);
+      drawScene(L,CX,CY,1,inA,false);
+      ctx.restore();
+      const sc=1-(1-1/Z)*tr;
+      const outA=Math.max(0,1-tr*1.6);
+      const bx=CX+(p.x-CX)*tr, by=CY+(p.y-CY)*tr;
+      drawScene(L+1,bx,by,sc,outA,false);
+    }
+  }
+
+  pickHover();
+}
+resize();
+syncHud();
+requestAnimationFrame(frame);
+
+/* ==================================================================
+   PLATE FIGURES (SVG)
+   ================================================================== */
+const SVGNS='http://www.w3.org/2000/svg';
+function el(name,attrs,parent,text){
+  const e=document.createElementNS(SVGNS,name);
+  for(const k in attrs)e.setAttribute(k,attrs[k]);
+  if(text!=null)e.textContent=text;
+  if(parent)parent.appendChild(e);
+  return e;
+}
+const MONO='ui-monospace, Menlo, monospace';
+
+/* ---------- Fig 1: the route ---------- */
+(function(){
+  const svg=document.getElementById('routeSvg');
+  const hops=[
+    {name:'Your phone',sub:'a planet',d:'0 km'},
+    {name:'Home router',sub:'its moon',d:'10 m · Wi-Fi'},
+    {name:'ISP network',sub:'star system',d:'~30 km · fiber'},
+    {name:'National backbone',sub:'galaxy arm',d:'~2,400 km'},
+    {name:'IXP · New York',sub:'supercluster',d:'peering'},
+    {name:'Submarine cable',sub:'cosmic filament',d:'~6,000 km · seabed'},
+    {name:'Edge / CDN',sub:'nebula shortcut',d:'or straight on'},
+    {name:'Data center · Frankfurt',sub:'destination star',d:'arrival'}
+  ];
+  const y=118,x0=58,x1=922,step=(x1-x0)/(hops.length-1);
+  /* the path with a gentle sag for the submarine stretch */
+  let dPath=`M ${x0} ${y}`;
+  hops.forEach((h,i)=>{
+    if(i===0)return;
+    const xa=x0+step*(i-1),xb=x0+step*i;
+    const sag=(i===5||i===6)?36:0;
+    dPath+=` Q ${(xa+xb)/2} ${y+sag} ${xb} ${y}`;
+  });
+  el('path',{d:dPath,fill:'none',stroke:'#35508f',['stroke-width']:1.5},svg);
+  const flow=el('path',{d:dPath,fill:'none',stroke:'#7de0ff',['stroke-width']:1.5,['stroke-dasharray']:'3 14',class:'flow-dash',opacity:0.9},svg);
+  const anim=el('animate',{attributeName:'stroke-dashoffset',from:'34',to:'0',dur:'1.6s',repeatCount:'indefinite'},flow);
+  if(REDUCED)anim.remove();
+  hops.forEach((h,i)=>{
+    const x=x0+step*i;
+    const big=i===0||i===hops.length-1;
+    el('circle',{cx:x,cy:y,r:big?7:5,fill:big?'#ffc76b':'#0c1223',stroke:big?'#ffc76b':'#7de0ff',['stroke-width']:1.5},svg);
+    const above=i%2===0;
+    const ty=above?y-46:y+58;
+    el('text',{x,y:ty,fill:'#e9edf7',['font-size']:12.5,['text-anchor']:'middle',['font-family']:'inherit'},svg,h.name);
+    el('text',{x,y:ty+16,fill:'#8d97b5',['font-size']:10.5,['text-anchor']:'middle',['font-family']:MONO,style:'text-transform:uppercase;letter-spacing:.08em'},svg,h.sub);
+    el('text',{x,y:above?y-78:y+90,fill:'#5a6382',['font-size']:10,['text-anchor']:'middle',['font-family']:MONO},svg,h.d);
+    if(above)el('line',{x1:x,y1:y-12,x2:x,y2:y-32,stroke:'rgba(141,151,181,.25)'},svg);
+    else el('line',{x1:x,y1:y+12,x2:x,y2:y+38,stroke:'rgba(141,151,181,.25)'},svg);
+  });
+  /* ocean band under the submarine hop */
+  el('text',{x:x0+step*5,y:y+34,fill:'#3f8fb0',['font-size']:10,['text-anchor']:'middle',['font-family']:MONO,style:'letter-spacing:.2em'},svg,'— ATLANTIC —');
+})();
+
+/* ---------- Fig 2: orders-of-magnitude ladder ---------- */
+(function(){
+  const svg=document.getElementById('ladderSvg');
+  const rows=[
+    {v:1e3,l:'1 KB',ex:'a short email'},
+    {v:5e6,l:'5 MB',ex:'one phone photo'},
+    {v:5e9,l:'5 GB',ex:'an HD film'},
+    {v:2e12,l:'2 TB',ex:'a laptop’s whole drive'},
+    {v:2.1e16,l:'21 PB',ex:'the Library of Congress web archive'},
+    {v:5e18,l:'5 EB',ex:'every word ever spoken, as text (est.)'},
+    {v:1.81e23,l:'181 ZB',ex:'the internet’s datasphere, 2025'}
+  ];
+  const x0=96,x1=930,rowH=42,top=18;
+  const maxLog=Math.log10(rows[rows.length-1].v);
+  rows.forEach((r,i)=>{
+    const y=top+i*rowH+rowH/2;
+    const w=(Math.log10(r.v)/maxLog)*(x1-x0);
+    const last=i===rows.length-1;
+    el('line',{x1:x0,y1:y,x2:x1,y2:y,stroke:'rgba(141,151,181,.08)'},svg);
+    el('rect',{x:x0,y:y-5,width:Math.max(w,4),height:10,rx:2,
+      fill:last?'#ffc76b':'#7de0ff',opacity:last?1:0.42+i*0.09},svg);
+    el('text',{x:x0-10,y:y+4,fill:'#e9edf7',['font-size']:12,['text-anchor']:'end',['font-family']:MONO},svg,r.l);
+    el('text',{x:x0+Math.max(w,4)+10,y:y+4,fill:last?'#ffc76b':'#8d97b5',['font-size']:11.5,['font-family']:'inherit',['font-style']:'italic'},svg,r.ex);
+  });
+  el('text',{x:x0,y:top+rows.length*rowH+16,fill:'#5a6382',['font-size']:10,['font-family']:MONO,style:'letter-spacing:.12em'},svg,'LOG SCALE — EACH EQUAL STEP IS ×1,000');
+})();
+
+/* ---------- Fig 3: dark matter bar ---------- */
+(function(){
+  const svg=document.getElementById('darkSvg');
+  const x0=10,x1=950,y=34,h=30;
+  const surfW=(x1-x0)*0.05;
+  el('rect',{x:x0,y,width:surfW,height:h,rx:2,fill:'#7de0ff'},svg);
+  el('rect',{x:x0+surfW+2,y,width:(x1-x0)-surfW-2,height:h,rx:2,fill:'#232c47'},svg);
+  /* faint texture on the dark segment */
+  for(let x=x0+surfW+14;x<x1-6;x+=16)
+    el('line',{x1:x,y1:y+3,x2:x-8,y2:y+h-3,stroke:'rgba(141,151,181,.12)'},svg);
+  el('text',{x:x0,y:y+h+26,fill:'#7de0ff',['font-size']:11,['font-family']:MONO},svg,'~5% VISIBLE');
+  el('text',{x:x1,y:y+h+26,fill:'#8d97b5',['font-size']:11,['text-anchor']:'end',['font-family']:MONO},svg,'~95% DARK — UNINDEXED, BEHIND LOGINS, OFF THE CHARTS');
+  el('text',{x:x0,y:y-12,fill:'#5a6382',['font-size']:10,['font-family']:MONO,style:'letter-spacing:.14em'},svg,'ALL WEB CONTENT');
+})();
+
+/* ---------- Fig 4: expansion curve ---------- */
+(function(){
+  const svg=document.getElementById('growthSvg');
+  const data=[[1990,2.6e6],[1995,1.6e7],[2000,3.61e8],[2005,1.02e9],[2010,1.97e9],[2015,3.19e9],[2020,4.7e9],[2025,5.64e9]];
+  const notes={1991:'first website',1998:'Google founded',2004:'Facebook',2007:'iPhone',2016:'half of humanity',2025:'5.6 B online'};
+  const x0=86,x1=920,y0=300,y1=36;
+  const lgMin=6,lgMax=10; /* 1M .. 10B */
+  const X=yr=>x0+(yr-1990)/(2025-1990)*(x1-x0);
+  const Y=v=>y0-(Math.log10(v)-lgMin)/(lgMax-lgMin)*(y0-y1);
+  /* gridlines at decades of magnitude */
+  [[1e6,'1 M'],[1e7,'10 M'],[1e8,'100 M'],[1e9,'1 B'],[1e10,'10 B']].forEach(([v,l])=>{
+    el('line',{x1:x0,y1:Y(v),x2:x1,y2:Y(v),stroke:'rgba(141,151,181,.1)'},svg);
+    el('text',{x:x0-10,y:Y(v)+4,fill:'#5a6382',['font-size']:10.5,['text-anchor']:'end',['font-family']:MONO},svg,l);
+  });
+  for(let yr=1990;yr<=2025;yr+=5)
+    el('text',{x:X(yr),y:y0+22,fill:'#5a6382',['font-size']:10.5,['text-anchor']:'middle',['font-family']:MONO},svg,String(yr));
+  /* smooth-ish path through points */
+  let d='';
+  data.forEach((p,i)=>{d+=(i?' L ':'M ')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)});
+  /* area fill */
+  el('path',{d:d+` L ${x1} ${y0} L ${X(1990)} ${y0} Z`,fill:'rgba(255,199,107,.07)'},svg);
+  el('path',{d,fill:'none',stroke:'#ffc76b',['stroke-width']:2,['stroke-linejoin']:'round'},svg);
+  data.forEach(p=>{
+    el('circle',{cx:X(p[0]),cy:Y(p[1]),r:3.5,fill:'#04070f',stroke:'#ffc76b',['stroke-width']:1.6},svg);
+  });
+  /* endpoint emphasis */
+  el('circle',{cx:X(2025),cy:Y(5.64e9),r:6,fill:'#ffc76b'},svg);
+  /* milestone flags */
+  const flags=[[1991,2.6e6,'first website',1],[1998,1.5e8,'Google founded',-1],[2007,1.37e9,'iPhone',-1],[2016,3.4e9,'half of humanity online',1]];
+  flags.forEach(([yr,v,txt,side])=>{
+    const x=X(yr),yy=Y(v);
+    el('line',{x1:x,y1:yy,x2:x,y2:yy+side*26,stroke:'rgba(141,151,181,.3)'},svg);
+    el('circle',{cx:x,cy:yy,r:2.5,fill:'#7de0ff'},svg);
+    el('text',{x:x+4,y:yy+side*26+(side>0?12:-6),fill:'#8d97b5',['font-size']:10.5,['font-family']:MONO},svg,txt.toUpperCase());
+  });
+  el('text',{x:X(2025)-8,y:Y(5.64e9)-14,fill:'#ffc76b',['font-size']:12,['text-anchor']:'end',['font-family']:MONO},svg,'5.64 B PEOPLE');
+})();
+
+/* ---------- live data counter ---------- */
+(function(){
+  const elB=document.getElementById('liveBytes');
+  const PB_PER_SEC=4.653; /* 402M TB/day */
+  const t0=performance.now();
+  function fmt(pb){
+    if(pb<1)return (pb*1000).toFixed(0)+' TB';
+    if(pb<1000)return pb.toFixed(pb<10?2:1)+' PB';
+    return (pb/1000).toFixed(2)+' EB';
+  }
+  if(REDUCED){elB.textContent='≈4.7 PB / second';return}
+  (function tick(){
+    const pb=(performance.now()-t0)/1000*PB_PER_SEC;
+    elB.textContent=fmt(pb);
+    setTimeout(tick,120);
+  })();
+})();
+</script>
