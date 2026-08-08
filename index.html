@@ -213,6 +213,47 @@ button{font:inherit;cursor:pointer}
   #tourBtn{left:12px;bottom:auto;top:112px}
   #tourCap{bottom:auto;top:150px}
 }
+
+/* the time machine */
+#timeBtn{
+  position:absolute;left:16px;bottom:62px;
+  display:none;align-items:center;gap:8px;
+  background:rgba(7,11,23,.72);
+  border:1px solid rgba(125,224,255,.3);
+  border-radius:4px;
+  color:var(--photon);
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  padding:9px 14px;
+  backdrop-filter:blur(6px);
+}
+#timeBtn.show{display:inline-flex}
+#timeBtn:hover{border-color:var(--photon);color:#b2ecff}
+#timePanel{
+  position:absolute;left:50%;bottom:14px;transform:translateX(-50%);
+  display:none;flex-direction:column;align-items:center;gap:7px;
+  width:min(560px,92vw);
+  background:rgba(7,11,23,.85);
+  border:1px solid var(--panel-edge);
+  border-radius:6px;
+  padding:14px 20px 14px;
+  backdrop-filter:blur(8px);
+}
+#timePanel.show{display:flex}
+#tmYear{font-family:var(--serif);font-size:34px;line-height:1;color:var(--core);font-variant-numeric:tabular-nums}
+#tmCensus{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;min-height:14px}
+#tmSlider{width:100%;accent-color:#ffc76b;cursor:pointer}
+#tmRow{display:flex;gap:10px;align-items:center;width:100%;justify-content:space-between}
+#tmPlay,#tmClose{
+  background:none;border:1px solid var(--panel-edge);border-radius:4px;
+  color:var(--photon);font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;
+  padding:5px 12px;text-transform:uppercase;
+}
+#tmPlay:hover,#tmClose:hover{border-color:var(--photon)}
+@media (max-width:720px){
+  #timeBtn{left:12px;bottom:auto;top:152px}
+  #timePanel{left:12px;right:12px;transform:none;width:auto;bottom:auto;top:196px;padding:10px 14px}
+  #tmYear{font-size:26px}
+}
 @keyframes cueFloat{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,6px)}}
 
 /* ---------- ATLAS PLATES (sections) ---------- */
@@ -324,6 +365,16 @@ footer{
     <aside id="panel" aria-live="polite"></aside>
     <div id="tip" role="presentation"></div>
     <button id="tourBtn" type="button">&#9656;&nbsp;Trace a request</button>
+    <button id="timeBtn" type="button">&#8987;&nbsp;Time machine</button>
+    <div id="timePanel" aria-label="Time machine controls">
+      <div id="tmYear" class="num">2026</div>
+      <div id="tmCensus"></div>
+      <input id="tmSlider" type="range" min="1969" max="2026" step="0.1" value="2026" aria-label="Year">
+      <div id="tmRow">
+        <button id="tmPlay" type="button">&#9654;&nbsp;Play</button>
+        <button id="tmClose" type="button">Today&nbsp;&#10005;</button>
+      </div>
+    </div>
     <div id="tourCap" aria-live="polite"></div>
     <button id="scrollCue" type="button">Field notes &darr;</button>
   </div>
@@ -407,7 +458,7 @@ footer{
     </div>
     <div class="prose">
       <p>At 10:30 pm, a student at UCLA tried to send <span class="k">LOGIN</span> to a machine at Stanford. The system died after <span class="k">LO</span> — and so the first word ever transmitted on the internet, fittingly, was <em>“lo.”</em> Four computers made up the whole universe that night. Today <strong>5.6&nbsp;billion people</strong> — 68% of humanity — are inside it, along with some 18&nbsp;billion connected devices that outnumber us more than two to one.</p>
-      <p>And unlike the real universe, this one’s expansion is still accelerating: the datasphere roughly <strong>doubles every three years</strong>.</p>
+      <p>And unlike the real universe, this one’s expansion is still accelerating: the datasphere roughly <strong>doubles every three years</strong>. Or don’t take the chart’s word for it — open the <span class="k">⌛ time machine</span> on the map above and watch the whole thing happen.</p>
     </div>
 
     <figure>
@@ -1081,6 +1132,7 @@ const MULTI_FABRIC=makeWarpGrid(0,0.55,4.8,23,
   UNIVERSES.map(u=>({x:u.x,y:u.y,m:u.rad*0.12,soft:0.5,max:0.5})));
 /* crawler comets on long elliptical orbits through the public universe */
 const comets=[{th:0,sp:0.05,A:0.66,e:0.55,rot:0.7},{th:2.6,sp:0.038,A:0.8,e:0.62,rot:-0.9}];
+/* (birth years for the time machine are applied after the era registries below) */
 
 /* ---------- packets ---------- */
 function bezXY(e,t){
@@ -1181,6 +1233,7 @@ function setCaption(txt){
 }
 function startTour(){
   if(tour)return;
+  closeTime();
   hideCover();
   state.planet=null;
   /* ride a star that actually has a smartphone in orbit */
@@ -1199,6 +1252,122 @@ function cancelTour(){
   clearTourEdge();
   refreshHud(true);
 }
+
+/* ---------- the time machine: the cosmos as of any year ---------- */
+const era={active:false,year:2026,playing:false};
+let prevEraYear=2026,evCapTimer=null;
+function eraA(birth,ramp){
+  if(!era.active)return 1;
+  return ss(era.year,birth||1969,(birth||1969)+(ramp||1.5));
+}
+const UNIVERSE_BIRTH={pstn:1878,internet:1969,intranet:1985,darknet:2002,crypto:2009,ai:2020};
+const UNIVERSE_RAMP={ai:2.5};
+const GALAXY_BIRTH={core:1969,openweb:1991,google:1998,amazon:1995,microsoft:1995,meta:2004,apple:2001,east:1999,edge:1998,
+  'arm-na':1996,'arm-eu':1998,'arm-asia':2000,'arm-orbit':2019,
+  bitcoin:2009,ethereum:2015,stable:2014,exchange:2010,
+  tor:2002,i2p:2003,corp:1985,scada:1985,circuit:1878,dying:1930,
+  frontier:2015,opencluster:2019,foundries:2016,agents:2023};
+const STAR_BIRTH={'Search':1997,'YouTube':2005,'Gmail':2004,'Maps':2005,'Google Cloud':2008,'Android & Play':2008,
+  'AWS us-east-1':2006,'S3':2006,'Amazon.com':1995,'Prime Video':2006,'Alexa cloud':2014,
+  'Azure':2010,'Microsoft 365':2011,'Teams':2017,'GitHub':2008,'LinkedIn':2003,'Xbox network':2002,
+  'Facebook':2004,'Instagram':2010,'WhatsApp':2009,'Messenger':2011,'Threads & the rest':2023,
+  'iCloud':2011,'App Store':2008,'iMessage':2011,'Apple TV+ & Music':2015,
+  'WeChat':2011,'Douyin / TikTok':2016,'Taobao & Alibaba':2003,'Baidu':2000,'Tencent Cloud & QQ':1999,
+  'Wikipedia':2001,'The blogosphere':1999,'Internet Archive':1996,'The Fediverse':2016,'Email & RSS':1971,
+  'Cloudflare':2010,'Akamai':1998,'Netflix Open Connect':2012,'Fastly & friends':2011,
+  'DE-CIX Frankfurt':1995,'AMS-IX Amsterdam':1994,'LINX London':1994,'Equinix constellation':1998,
+  'Comcast / Xfinity':1996,'Verizon':2000,'T-Mobile 5G Home':2021,'The Last Mile':1996,
+  'Jio':2016,'Starlink':2019,'OneWeb':2020,'Project Kuiper':2024,'The GEO Elders':2005,
+  'The Mining Pools':2010,'The Lightning Network':2018,'The EVM':2015,'The DeFi Protocols':2018,
+  'The Layer-2 Rollups':2021,'The Validators':2020,'The NFT Nebula':2017,
+  'USD Coin':2018,'Binance':2017,'Coinbase':2012,'FTX':2019,'Bridges':2007,
+  'Anthropic':2021,'OpenAI':2015,'Google DeepMind':2010,'Meta AI':2013,'The Training Nebula':2020,
+  'Hugging Face':2016,'Mistral & the Europeans':2023,'DeepSeek & Qwen':2023,'The fine-tune dust':2019,
+  'The GPU superclusters':2022,'Power & cooling':2021,
+  'The coding agents':2023,'The assistants':2023,'The embodied':2024,'The swarm':2024};
+/* the census under the year readout */
+const ERA_HOSTS=[[1969,4],[1971,23],[1975,57],[1979,188],[1982,235],[1984,1024],[1986,5089],[1988,56000],[1990,313000]];
+const ERA_USERS=[[1990,2.6e6],[1995,16e6],[2000,361e6],[2005,1.02e9],[2010,1.97e9],[2015,3.19e9],[2020,4.7e9],[2026,5.8e9]];
+function lerpTable(tab,y){
+  if(y<=tab[0][0])return tab[0][1];
+  for(let i=1;i<tab.length;i++){
+    if(y<=tab[i][0]){
+      const [y0,v0]=tab[i-1],[y1,v1]=tab[i];
+      const t=(y-y0)/(y1-y0);
+      return Math.exp(Math.log(v0)+(Math.log(v1)-Math.log(v0))*t);
+    }
+  }
+  return tab[tab.length-1][1];
+}
+function censusText(y){
+  if(y<1990){
+    const h=Math.round(lerpTable(ERA_HOSTS,y));
+    return h.toLocaleString('en-US')+' arpanet hosts';
+  }
+  const u=lerpTable(ERA_USERS,y);
+  return (u>=1e9?(u/1e9).toFixed(2)+' B':Math.round(u/1e6)+' M')+' people online';
+}
+/* supernova events fired as the playhead crosses them */
+function findG(id){for(const u of UNIVERSES)for(const g of u.galaxies)if(g.id===id)return g}
+const EVENTS=[
+  {y:1969.8,id:'core',rgb:'235,242,255',label:'THE FIRST MESSAGE — “LO”'},
+  {y:1983,id:'core',rgb:'224,235,255',label:'TCP/IP DAY — ONE PROTOCOL FOR ALL'},
+  {y:1991,id:'openweb',rgb:'165,240,197',label:'THE WEB IGNITES'},
+  {y:1995,id:'amazon',rgb:'255,177,161',label:'AMAZON OPENS THE STORE'},
+  {y:1998,id:'google',rgb:'125,224,255',label:'GOOGLE IGNITES'},
+  {y:2004,id:'meta',rgb:'125,224,255',label:'FACEBOOK IGNITES'},
+  {y:2007,id:'apple',rgb:'217,228,255',label:'THE IPHONE — PLANETS EVERYWHERE'},
+  {y:2009,id:'bitcoin',rgb:'255,196,90',label:'THE GENESIS BLOCK'},
+  {y:2015,id:'ethereum',rgb:'160,150,255',label:'ETHEREUM — THE LEDGER LEARNS TO COMPUTE'},
+  {y:2019,id:'arm-orbit',rgb:'214,235,255',label:'THE SKY BECOMES AN ISP — STARLINK'},
+  {y:2022.9,id:'frontier',rgb:'252,150,200',label:'A MIND SPEAKS — CHATGPT'},
+  {y:2025.5,id:'core',rgb:'255,199,107',label:'YOU ARE HERE'},
+];
+function fireEvent(ev){
+  const g=findG(ev.id);
+  if(g)emitRipple(g.wx,g.wy,1.6,ev.rgb);
+  if(!tour){
+    clearTimeout(evCapTimer);
+    tourCap.textContent=Math.floor(ev.y)+' — '+ev.label;
+    tourCap.style.opacity=1;
+    evCapTimer=setTimeout(()=>{if(!tour)tourCap.style.opacity=0},2600);
+  }
+}
+function openTime(){
+  cancelTour();hideCover();
+  era.active=true;era.year=1969;era.playing=true;prevEraYear=era.year;
+  timePanel.classList.add('show');
+  document.getElementById('scrollCue').classList.add('hidden-hud');
+  refreshHud(true);
+}
+function closeTime(){
+  if(!era.active)return;
+  era.active=false;era.playing=false;
+  timePanel.classList.remove('show');
+  tourCap.style.opacity=0;
+  document.getElementById('scrollCue').classList.remove('hidden-hud');
+  refreshHud(true);
+}
+function updateTimeHud(){
+  tmYear.textContent=Math.floor(era.year);
+  tmCensus.textContent=censusText(era.year);
+  tmSlider.value=era.year;
+  tmPlay.innerHTML=era.playing?'&#10074;&#10074;&nbsp;Pause':'&#9654;&nbsp;Play';
+}
+/* apply birth years (defaults cascade: star → galaxy → universe) */
+for(const u of UNIVERSES){
+  u.birth=UNIVERSE_BIRTH[u.id]??1969;
+  u.ramp=UNIVERSE_RAMP[u.id]||1.5;
+  for(const g of u.galaxies){
+    g.birth=Math.max(GALAXY_BIRTH[g.id]??u.birth,u.birth);
+    for(const st of g.stars)st.birth=Math.max(STAR_BIRTH[st.name]??g.birth,g.birth);
+  }
+}
+for(const e of ALL_EDGES){
+  if(e.univ)e.birth=Math.max(e.univ.galaxies[e.ia].birth,e.univ.galaxies[e.ib].birth);
+}
+/* strand birth years, in creation order */
+[2002,1969,2009,2011,2022,2022].forEach((y,i)=>{if(STRANDS[i])STRANDS[i].birth=y});
 
 /* ---------- pointer controls ---------- */
 const pointers=new Map();
@@ -1256,7 +1425,24 @@ const coverEl=document.getElementById('cover');
 const tipEl=document.getElementById('tip');
 const tourBtn=document.getElementById('tourBtn');
 const tourCap=document.getElementById('tourCap');
+const timeBtn=document.getElementById('timeBtn');
+const timePanel=document.getElementById('timePanel');
+const tmYear=document.getElementById('tmYear');
+const tmCensus=document.getElementById('tmCensus');
+const tmSlider=document.getElementById('tmSlider');
+const tmPlay=document.getElementById('tmPlay');
+const tmClose=document.getElementById('tmClose');
 tourBtn.addEventListener('click',startTour);
+timeBtn.addEventListener('click',openTime);
+tmClose.addEventListener('click',closeTime);
+tmPlay.addEventListener('click',()=>{
+  if(era.year>=2026)era.year=1969;
+  era.playing=!era.playing;
+});
+tmSlider.addEventListener('input',()=>{
+  era.playing=false;
+  era.year=+tmSlider.value;
+});
 document.getElementById('scrollCue').addEventListener('click',()=>{
   document.getElementById('connected').scrollIntoView({behavior:REDUCED?'auto':'smooth'});
 });
@@ -1314,7 +1500,8 @@ function refreshHud(force){
   if(sStar){crumbsEl.appendChild(sep());crumbsEl.appendChild(crumbBtn(sStar.name,()=>flyStar(sStar),deepest==='s'&&!state.planet))}
   if(state.planet){crumbsEl.appendChild(sep());const s=document.createElement('span');s.className='seg';s.style.color='var(--core)';s.textContent=state.planet.dev.name;crumbsEl.appendChild(s)}
   backBtn.classList.toggle('show',deepest!=='m');
-  tourBtn.classList.toggle('show',!tour&&!!(uUni&&uUni.id==='internet'));
+  tourBtn.classList.toggle('show',!tour&&!era.active&&!!(uUni&&uUni.id==='internet'));
+  timeBtn.classList.toggle('show',!tour&&!era.active);
   renderPanel();
 }
 
@@ -1342,7 +1529,7 @@ function renderPanel(){
     h=panelHTML('You are adrift in · the multiverse','Six universes, one fabric',
       'The public internet is only the visible universe. Around it float the ones that hide, the ones that wall themselves off, the one it was born from, the one that turned it into money — and now, the one that learned to think.',
       [['The Internet','public · 5.6 B people'],['The Darknet','hidden · rides the internet'],['The Intranets','walled · air-gapped'],['The PSTN','ancestor · b. 1878'],['The Cryptoverse','value · pulses every block'],['The Mind Universe','AI · trained on the web']],
-      'Click a universe to enter it');
+      'Click a universe to enter it · or open the time machine');
   }
   panelEl.innerHTML=h;
 }
@@ -1453,36 +1640,47 @@ function strokeEdge(e,time){
 
 /* ---------- scene rendering ---------- */
 function drawUniverseLayer(u,time){
+  const eU=eraA(u.birth,u.ramp);
+  if(eU<=0.002){
+    u._filA=0;
+    for(const e of ALL_EDGES)if(e.univ===u)e._a=0;
+    return 0;
+  }
   const uniRel=u.rad*cam.z;
   const content=ss(uniRel,0.38,0.8);              /* filaments, web */
-  const fabricA=ss(uniRel,0.34,0.7)*(1-ss(uniRel,2.2,4.2));
-  const webA=content*(1-ss(uniRel,6,12));
-  const filA=content*(1-ss(uniRel,3.5,7));
-  const bubbleA=1-ss(uniRel,0.66,1.05);
+  const fabricA=ss(uniRel,0.34,0.7)*(1-ss(uniRel,2.2,4.2))*eU;
+  const webA=content*(1-ss(uniRel,6,12))*eU;
+  const filA=content*(1-ss(uniRel,3.5,7))*eU;
+  const bubbleA=(1-ss(uniRel,0.66,1.05))*eU;
   u._filA=filA;
 
   if(!vis(u.x,u.y,u.rad*3.2))return bubbleA;
 
   /* spacetime fabric */
   drawGrid(u.fabric,0.16*fabricA,'76,110,180',time);
-  /* fine cosmic web — the fabric of small sites */
+  /* fine cosmic web — the fabric of small sites (it grows through the 90s and 2000s) */
   if(webA>0.01){
+    const grow=u.id==='internet'&&era.active?ss(era.year,1992,2015):1;
+    const cutE=Math.floor(u.webEdges.length*grow), cutN=Math.floor(u.webNodes.length*grow);
     ctx.strokeStyle=`rgba(125,224,255,${0.06*webA})`;
     ctx.lineWidth=1;
     ctx.beginPath();
-    for(const s of u.webEdges){
+    for(let i=0;i<cutE;i++){
+      const s=u.webEdges[i];
       const wa=warp(s[0],s[1],time),wb=warp(s[2],s[3],time);
       ctx.moveTo(w2sX(s[0]+wa[0]),w2sY(s[1]+wa[1]));
       ctx.lineTo(w2sX(s[2]+wb[0]),w2sY(s[3]+wb[1]));
     }
     ctx.stroke();
     ctx.fillStyle=`rgba(214,224,248,${0.28*webA})`;
-    for(const p of u.webNodes){
+    for(let i=0;i<cutN;i++){
+      const p=u.webNodes[i];
       const wn=warp(p[0],p[1],time);
       ctx.fillRect(w2sX(p[0]+wn[0])-0.6,w2sY(p[1]+wn[1])-0.6,1.2,1.2);
     }
     /* sparks: small sites talking to each other */
     for(const spk of u.webSparks){
+      if(spk.ei>=cutE)continue;
       const s=u.webEdges[spk.ei];if(!s)continue;
       const sx=s[0]+(s[2]-s[0])*spk.t, sy=s[1]+(s[3]-s[1])*spk.t;
       const wn=warp(sx,sy,time);
@@ -1510,17 +1708,19 @@ function drawUniverseLayer(u,time){
     for(const e of ALL_EDGES){
       if(e.univ!==u)continue;
       /* transit is solid backbone blue; peering is dashed teal — the free kind of light */
-      if(e.kind==='p'){ctx.strokeStyle=`rgba(110,210,190,${0.22*filA})`;ctx.setLineDash([5,6]);}
-      else ctx.strokeStyle=`rgba(76,110,180,${0.28*filA})`;
+      const fe=filA*eraA(e.birth,1);
+      if(fe<=0.01){e._a=0;continue}
+      if(e.kind==='p'){ctx.strokeStyle=`rgba(110,210,190,${0.22*fe})`;ctx.setLineDash([5,6]);}
+      else ctx.strokeStyle=`rgba(76,110,180,${0.28*fe})`;
       strokeEdge(e,time);
       ctx.setLineDash([]);
       if(e===tourEdge){
-        ctx.strokeStyle=`rgba(255,199,107,${0.8*filA})`;
+        ctx.strokeStyle=`rgba(255,199,107,${0.8*fe})`;
         ctx.lineWidth=1.8;
         strokeEdge(e,time);
         ctx.lineWidth=1;
       }
-      e._a=filA;
+      e._a=fe;
     }
   }else for(const e of ALL_EDGES)if(e.univ===u)e._a=0;
   /* crawler comets — bots sweeping the public universe */
@@ -1543,11 +1743,13 @@ function drawUniverseLayer(u,time){
 }
 
 function drawGalaxy(g,time){
+  const eG=eraA(g.birth);
+  if(eG<=0.002){g._detailA=0;return}
   const relDet=g.detR*cam.z;
-  const iconA=ss(relDet,0.04,0.12)*(1-ss(relDet,1.3,2.9));
-  const detailA=ss(relDet,0.6,1.35);
+  const iconA=ss(relDet,0.04,0.12)*(1-ss(relDet,1.3,2.9))*eG;
+  const detailA=ss(relDet,0.6,1.35)*eG;
   const dustA=detailA*(1-ss(relDet,6,14));
-  const labelA=ss(relDet,0.15,0.27)*(1-ss(relDet,1.1,2));
+  const labelA=ss(relDet,0.15,0.27)*(1-ss(relDet,1.1,2))*eG;
   g._detailA=detailA;
   if(!vis(g.wx,g.wy,g.detR*1.6))return;
   const gx=w2sX(g.wx),gy=w2sY(g.wy);
@@ -1597,15 +1799,17 @@ function drawGalaxy(g,time){
     clickables.push({x:gx,y:gy,r:Math.max(apparent(g.r)*1.3,34),obj:g,kind:'galaxy',label:g.name,sub:g.sub+' — click to fall in'});
   }
 
-  /* the chain itself: every block since genesis, spiralling outward */
+  /* the chain itself: every block since genesis, spiralling outward
+     (in the time machine it grows with the years) */
   if(g.chain&&detailA>0.02){
-    const NB=30;
+    const chainFrac=era.active?Math.max(0.03,Math.min(1,(era.year-2009)/16.5)):1;
+    const NB=Math.max(2,Math.round(30*chainFrac));
     const bp=[];
     ctx.strokeStyle=`rgba(255,200,110,${0.22*detailA})`;
     ctx.lineWidth=1;
     ctx.beginPath();
     for(let i=0;i<NB;i++){
-      const t2=i/(NB-1);
+      const t2=i/29;
       const ang=t2*4.2*Math.PI+g.tilt;
       const rr=(0.06+t2*0.72)*g.detR;
       const x=w2sX(g.wx+Math.cos(ang)*rr),y=w2sY(g.wy+Math.sin(ang)*rr*0.72);
@@ -1620,7 +1824,8 @@ function drawGalaxy(g,time){
     const tip=bp[NB-1];
     const fresh=Math.max(0,1-(time-lastBlockAt)*0.8);
     glow(tip[0],tip[1],10+fresh*16,[255,200,110],(0.45+0.55*fresh)*detailA);
-    label(tip[0],tip[1]-14,'block ≈ 880,000',0.55*detailA,9);
+    const height=era.active?Math.round(880000*Math.max(0,Math.min(1,(era.year-2009)/16.5))):880000;
+    label(tip[0],tip[1]-14,'block ≈ '+height.toLocaleString('en-US'),0.55*detailA,9);
   }
   /* mempool fireflies: unconfirmed transactions swarming the miners,
      swept into the star on every block pulse */
@@ -1686,10 +1891,13 @@ function drawGalaxy(g,time){
 
 function drawStar(st,detailA,time){
   const g=st.gal;
+  const eS=eraA(st.birth);
+  if(eS<=0.002)return;
+  detailA*=eS;
   if(!vis(st.wx,st.wy,st.sysR*1.3))return;
   const x=w2sX(st.wx),y=w2sY(st.wy);
   const relSys=st.sysR*cam.z;
-  const sysA=ss(relSys,0.2,0.5);
+  const sysA=ss(relSys,0.2,0.5)*eS;
   const starLblA=detailA*(1-ss(relSys,0.5,0.9));
   const rW=g.detR*0.02*(0.6+st.heat*0.8);
   const sr=Math.max(apparent(rW),2.5);
@@ -1893,13 +2101,29 @@ function frame(now){
   if(!REDUCED&&cam.z>0.28&&vis(cryU.x,cryU.y,cryU.rad*1.6)){
     btcT-=dt;ethT-=dt;
     if(btcT<=0){
-      btcT=10;lastBlockAt=time;fireRush=time;
-      emitRipple(cryU.galaxies[0].wx,cryU.galaxies[0].wy,1.3,'255,196,90');
+      btcT=10;
+      if(!era.active||era.year>=2009.1){
+        lastBlockAt=time;fireRush=time;
+        emitRipple(cryU.galaxies[0].wx,cryU.galaxies[0].wy,1.3,'255,196,90');
+      }
     }
     if(ethT<=0){
       ethT=1.2;
-      emitRipple(cryU.galaxies[1].wx,cryU.galaxies[1].wy,0.35,'160,150,255');
+      if(!era.active||era.year>=2015.1)emitRipple(cryU.galaxies[1].wx,cryU.galaxies[1].wy,0.35,'160,150,255');
     }
+  }
+  /* the time machine's clock */
+  if(era.active){
+    if(era.playing){
+      era.year=Math.min(2026,era.year+dt*1.6);
+      if(era.year>=2026)era.playing=false;
+    }
+    const dy=era.year-prevEraYear;
+    if(dy>0&&dy<3){
+      for(const ev of EVENTS)if(ev.y>prevEraYear&&ev.y<=era.year)fireEvent(ev);
+    }
+    prevEraYear=era.year;
+    updateTimeHud();
   }
   sysGridBudget=3;
   let streak=0,zr=0;
@@ -1945,12 +2169,14 @@ function frame(now){
   if(strandA>0.01){
     ctx.lineWidth=1;
     for(const e of STRANDS){
-      ctx.strokeStyle=`rgba(${e.tint},${0.3*strandA})`;
+      const sA=strandA*eraA(e.birth,1.2);
+      if(sA<=0.01){e._a=0;continue}
+      ctx.strokeStyle=`rgba(${e.tint},${0.3*sA})`;
       ctx.setLineDash([3,8]);
       strokeEdge(e,time);
       ctx.setLineDash([]);
-      e._a=strandA*0.8;
-      if(cam.z<0.6)label(w2sX(e.lx),w2sY(e.ly)-8,e.lbl,0.4*strandA,8.5,`rgba(${e.tint},${0.75*strandA})`);
+      e._a=sA*0.8;
+      if(cam.z<0.6)label(w2sX(e.lx),w2sY(e.ly)-8,e.lbl,0.4*sA,8.5,`rgba(${e.tint},${0.75*sA})`);
     }
   }else for(const e of STRANDS)e._a=0;
 
@@ -2022,7 +2248,7 @@ resize();
 refreshHud(true);
 requestAnimationFrame(frame);
 /* debug/testing handle */
-window.__cosmos={cam,state,UNIVERSES,flyUniverse,flyGalaxy,flyStar,flyMultiverse,pickAt,startTour,cancelTour,clickables:()=>clickables};
+window.__cosmos={cam,state,UNIVERSES,flyUniverse,flyGalaxy,flyStar,flyMultiverse,pickAt,startTour,cancelTour,era,openTime,closeTime,clickables:()=>clickables};
 
 /* ==================================================================
    PLATE FIGURES (SVG)
