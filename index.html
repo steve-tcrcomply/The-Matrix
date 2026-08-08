@@ -285,7 +285,7 @@ footer{
       <span class="eyebrow">A Field Atlas · Observed 2025</span>
       <h1>The Internet,<br>drawn as <em>a universe</em></h1>
       <p class="sub">Every star a server, every filament a cable under the sea.</p>
-      <p class="controls">DRAG TO ROAM &nbsp;·&nbsp; SCROLL OR PINCH TO DIVE &nbsp;·&nbsp; CLICK TO FLY</p>
+      <p class="controls">DRAG TO ROAM &nbsp;·&nbsp; SCROLL TO DIVE &nbsp;·&nbsp; CLICK TO FLY &nbsp;·&nbsp; TAP THE VOID TO RIPPLE IT</p>
     </div>
 
     <nav id="crumbs" aria-label="Map location"></nav>
@@ -424,10 +424,10 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ---------- device catalogue (the planets) ---------- */
 const DEVICES=[
-  {name:'A smartphone', color:'#9fd8ff', size:5.5,
+  {name:'A smartphone', color:'#9fd8ff', size:5.5, moon:1,
    desc:'Most of humanity’s window on the universe — the majority of the 5.6 B people online connect primarily by phone.',
    stats:[['Last mile','Wi-Fi or 4G/5G radio'],['Typical latency to edge','20–60 ms'],['Share of web traffic','~60%+ mobile']]},
-  {name:'A laptop', color:'#d9e4ff', size:6,
+  {name:'A laptop', color:'#d9e4ff', size:6, moon:1,
    desc:'Connects through a home router — its own little moon — then down the ISP’s fiber to the backbone.',
    stats:[['Last mile','Wi-Fi → fiber/cable'],['Typical latency to edge','10–40 ms'],['Path','router → ISP → IXP']]},
   {name:'A smart TV', color:'#ffb1a1', size:6.5,
@@ -680,6 +680,59 @@ function initGalaxy(g,gi){
   });
 }
 
+/* ---------- dynamic spacetime: warped grids, cursor gravity, ripples ---------- */
+function makeWarpGrid(cx,cy,ext,N,masses){
+  const grid=[];
+  for(let r=0;r<N;r++){
+    const row=[];
+    for(let c=0;c<N;c++){
+      let vx=cx-ext+2*ext*c/(N-1), vy=cy-ext+2*ext*r/(N-1);
+      for(const m of masses){
+        const dx=m.x-vx,dy=m.y-vy,d=Math.hypot(dx,dy)+1e-6;
+        const pull=Math.min(Math.min(m.m/(d+m.soft),d*0.55),m.max);
+        vx+=dx/d*pull;vy+=dy/d*pull;
+      }
+      row.push([vx,vy]);
+    }
+    grid.push(row);
+  }
+  return grid;
+}
+const ripples=[];
+const mouseW={x:1e9,y:1e9};
+let prevX=0,prevY=0,prevZ=0,sysGridBudget=3;
+function emitRipple(wx,wy,strength){
+  if(REDUCED)return;
+  const K=cam.z*SCALE;
+  const s=strength||1;
+  ripples.push({wx,wy,t0:performance.now()/1000,dur:2.4,v:s*230/K,amp:s*16/K,w:60/K});
+  if(ripples.length>8)ripples.shift();
+}
+/* dynamic displacement of any world point: cursor mass + travelling ripples */
+function warp(wx,wy,time){
+  let dx=0,dy=0;
+  const K=cam.z*SCALE;
+  const mdx=mouseW.x-wx,mdy=mouseW.y-wy;
+  const md=Math.hypot(mdx,mdy);
+  const Rw=130/K;
+  if(md<Rw*3&&md>1e-9){
+    const f=Math.exp(-(md*md)/(Rw*Rw))*(30/K);
+    dx+=mdx/md*f;dy+=mdy/md*f;
+  }
+  for(const rp of ripples){
+    const age=time-rp.t0;
+    const R=rp.v*age;
+    const rdx=wx-rp.wx,rdy=wy-rp.wy;
+    const rd=Math.hypot(rdx,rdy)+1e-9;
+    const q=(rd-R)/rp.w;
+    if(q>-3&&q<3){
+      const f=rp.amp*q*Math.exp(-q*q)*(1-age/rp.dur);
+      dx+=rdx/rd*f;dy+=rdy/rd*f;
+    }
+  }
+  return [dx,dy];
+}
+
 /* ---------- world-coordinate init ---------- */
 let giSeed=0;
 const ALL_EDGES=[];   /* {ax,ay,bx,by,cx,cy,univ|strand,tint,dash} */
@@ -707,21 +760,13 @@ for(const u of UNIVERSES){
     const bend=(rndW()-0.5)*0.4*len;
     ALL_EDGES.push({ax:a.wx,ay:a.wy,bx:b.wx,by:b.wy,cx:mx-dy/len*bend,cy:my+dx/len*bend,univ:u});
   }
-  /* the spacetime fabric: a lattice warped by galactic mass */
-  const N=13,ext=u.rad*1.3;
-  u.fabric=[];
-  for(let r=0;r<N;r++){
-    const row=[];
-    for(let c=0;c<N;c++){
-      let vx=u.x-ext+2*ext*c/(N-1), vy=u.y-ext+2*ext*r/(N-1);
-      for(const g of u.galaxies){
-        const dx=g.wx-vx,dy=g.wy-vy,d=Math.hypot(dx,dy)+1e-6;
-        const pull=Math.min(Math.min(g.r*0.055/(d+0.06),d*0.55),0.1);
-        vx+=dx/d*pull;vy+=dy/d*pull;
-      }
-      row.push([vx,vy]);
-    }
-    u.fabric.push(row);
+  /* the spacetime fabric at universe scale, dented by galactic mass */
+  u.fabric=makeWarpGrid(u.x,u.y,u.rad*1.3,13,
+    u.galaxies.map(g=>({x:g.wx,y:g.wy,m:g.r*0.055,soft:0.06,max:0.1})));
+  /* each galaxy gets its own finer sheet, dented by its stars */
+  for(const g of u.galaxies){
+    g.fabric=makeWarpGrid(g.wx,g.wy,g.detR*1.2,11,
+      g.stars.map(st=>({x:st.wx,y:st.wy,m:g.detR*0.02*(0.25+st.heat*0.55),soft:g.detR*0.14,max:g.detR*0.28})));
   }
   /* the fine cosmic web: website-stars strung on faint strands */
   const rndX=mulberry32(777+u.x*31|0);
@@ -757,6 +802,11 @@ function strand(ua,ub,tint,lbl){
 }
 strand('internet','darknet','178,140,255','TOR RIDES THE PUBLIC INTERNET');
 strand('internet','pstn','255,190,140','DSL STILL RIDES THE PHONE LINES');
+/* the coarsest sheet: the whole multiverse dents it */
+const MULTI_FABRIC=makeWarpGrid(0,0.55,4.8,23,
+  UNIVERSES.map(u=>({x:u.x,y:u.y,m:u.rad*0.12,soft:0.5,max:0.5})));
+/* crawler comets on long elliptical orbits through the public universe */
+const comets=[{th:0,sp:0.05,A:0.66,e:0.55,rot:0.7},{th:2.6,sp:0.038,A:0.8,e:0.62,rot:-0.9}];
 
 /* ---------- packets ---------- */
 function bezXY(e,t){
@@ -948,7 +998,7 @@ function renderPanel(){
   }else if(c.g){
     h=panelHTML('Galaxy · '+c.g.sub,c.g.name,c.g.desc,c.g.stats,'Keep diving into a star, or drag to the next galaxy');
   }else if(c.u){
-    h=panelHTML('Universe · '+c.u.sub,c.u.name,c.u.desc,c.u.stats,'Scroll to dive into a galaxy · zoom out to leave');
+    h=panelHTML('Universe · '+c.u.sub,c.u.name,c.u.desc,c.u.stats,'Scroll to dive into a galaxy · click empty space to ripple the fabric');
   }else{
     h=panelHTML('You are adrift in · the multiverse','Four universes, one fabric',
       'The public internet is only the visible universe. Around it float the ones that hide, the ones that wall themselves off, and the one it was born from.',
@@ -983,7 +1033,12 @@ canvas.addEventListener('click',e=>{
       else if(t.kind==='star')flyStar(t.obj);
       refreshHud(true);
     }
-  }else if(state.planet){state.planet=null;refreshHud(true)}
+  }else{
+    if(state.planet){state.planet=null;refreshHud(true)}
+    /* a click on the void drops a pebble on the sheet */
+    const K=cam.z*SCALE;
+    emitRipple(cam.x+(e.offsetX-CX)/K,cam.y+(e.offsetY-CY)/K,1);
+  }
 });
 function pickHover(){
   hover=pickAt(mouse.x,mouse.y);
@@ -1013,6 +1068,40 @@ function label(x,y,text,alpha,size,color){
   ctx.fillStyle=color||`rgba(233,237,247,${alpha})`;
   ctx.fillText(text.toUpperCase(),x,y);
 }
+/* stroke a warped lattice: every vertex feels the cursor & any ripples */
+function drawGrid(grid,alpha,rgb,time){
+  if(alpha<=0.01)return;
+  const N=grid.length;
+  const pts=new Array(N*N);
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const p=grid[r][c];
+    const w=warp(p[0],p[1],time);
+    pts[r*N+c]=[w2sX(p[0]+w[0]),w2sY(p[1]+w[1])];
+  }
+  ctx.strokeStyle=`rgba(${rgb},${alpha})`;
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const p=pts[r*N+c];
+    c?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);
+  }
+  for(let c=0;c<N;c++)for(let r=0;r<N;r++){
+    const p=pts[r*N+c];
+    r?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);
+  }
+  ctx.stroke();
+}
+/* stroke a filament as a warped polyline so it rides the fabric too */
+function strokeEdge(e,time){
+  ctx.beginPath();
+  for(let i=0;i<=8;i++){
+    const [bx,by]=bezXY(e,i/8);
+    const w=warp(bx,by,time);
+    const x=w2sX(bx+w[0]),y=w2sY(by+w[1]);
+    i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+  }
+  ctx.stroke();
+}
 
 /* ---------- scene rendering ---------- */
 function drawUniverseLayer(u,time){
@@ -1027,42 +1116,22 @@ function drawUniverseLayer(u,time){
   if(!vis(u.x,u.y,u.rad*3.2))return bubbleA;
 
   /* spacetime fabric */
-  if(fabricA>0.01){
-    ctx.strokeStyle=`rgba(76,110,180,${0.16*fabricA})`;
-    ctx.lineWidth=1;
-    const N=u.fabric.length;
-    for(let r=0;r<N;r++){
-      ctx.beginPath();
-      for(let c2=0;c2<N;c2++){
-        const p=u.fabric[r][c2];
-        const x=w2sX(p[0]),y=w2sY(p[1]);
-        c2?ctx.lineTo(x,y):ctx.moveTo(x,y);
-      }
-      ctx.stroke();
-    }
-    for(let c2=0;c2<N;c2++){
-      ctx.beginPath();
-      for(let r=0;r<N;r++){
-        const p=u.fabric[r][c2];
-        const x=w2sX(p[0]),y=w2sY(p[1]);
-        r?ctx.lineTo(x,y):ctx.moveTo(x,y);
-      }
-      ctx.stroke();
-    }
-  }
+  drawGrid(u.fabric,0.16*fabricA,'76,110,180',time);
   /* fine cosmic web — the fabric of small sites */
   if(webA>0.01){
     ctx.strokeStyle=`rgba(125,224,255,${0.06*webA})`;
     ctx.lineWidth=1;
     ctx.beginPath();
     for(const s of u.webEdges){
-      ctx.moveTo(w2sX(s[0]),w2sY(s[1]));
-      ctx.lineTo(w2sX(s[2]),w2sY(s[3]));
+      const wa=warp(s[0],s[1],time),wb=warp(s[2],s[3],time);
+      ctx.moveTo(w2sX(s[0]+wa[0]),w2sY(s[1]+wa[1]));
+      ctx.lineTo(w2sX(s[2]+wb[0]),w2sY(s[3]+wb[1]));
     }
     ctx.stroke();
     ctx.fillStyle=`rgba(214,224,248,${0.28*webA})`;
     for(const p of u.webNodes){
-      ctx.fillRect(w2sX(p[0])-0.6,w2sY(p[1])-0.6,1.2,1.2);
+      const wn=warp(p[0],p[1],time);
+      ctx.fillRect(w2sX(p[0]+wn[0])-0.6,w2sY(p[1]+wn[1])-0.6,1.2,1.2);
     }
   }
   /* bubble (multiverse view) */
@@ -1085,13 +1154,26 @@ function drawUniverseLayer(u,time){
     ctx.strokeStyle=`rgba(76,110,180,${0.26*filA})`;
     for(const e of ALL_EDGES){
       if(e.univ!==u)continue;
-      ctx.beginPath();
-      ctx.moveTo(w2sX(e.ax),w2sY(e.ay));
-      ctx.quadraticCurveTo(w2sX(e.cx),w2sY(e.cy),w2sX(e.bx),w2sY(e.by));
-      ctx.stroke();
+      strokeEdge(e,time);
       e._a=filA;
     }
   }else for(const e of ALL_EDGES)if(e.univ===u)e._a=0;
+  /* crawler comets — bots sweeping the public universe */
+  if(u.id==='internet'&&filA>0.01){
+    for(const cm of comets){
+      const cr=Math.cos(cm.rot),sr=Math.sin(cm.rot);
+      for(let k=6;k>=0;k--){
+        const th=cm.th-k*0.055;
+        const rr=cm.A*(1-cm.e*cm.e)/(1+cm.e*Math.cos(th));
+        const ex=rr*Math.cos(th),ey=rr*Math.sin(th)*0.8;
+        const x=w2sX(u.x+ex*cr-ey*sr),y=w2sY(u.y+ex*sr+ey*cr);
+        const fade=(1-k/7)*filA;
+        if(k===0)glow(x,y,7,[214,235,255],0.7*fade);
+        ctx.fillStyle=`rgba(214,235,255,${0.5*fade})`;
+        ctx.beginPath();ctx.arc(x,y,k===0?1.6:1.1,0,7);ctx.fill();
+      }
+    }
+  }
   return bubbleA;
 }
 
@@ -1104,6 +1186,10 @@ function drawGalaxy(g,time){
   g._detailA=detailA;
   if(!vis(g.wx,g.wy,g.detR*1.6))return;
   const gx=w2sX(g.wx),gy=w2sY(g.wy);
+
+  /* the galaxy's own spacetime sheet, dented by its stars */
+  const gFabA=detailA*(1-ss(relDet,6,12));
+  if(gFabA>0.01)drawGrid(g.fabric,0.12*gFabA,`${g.tint[0]},${g.tint[1]},${g.tint[2]}`,time);
 
   /* icon cloud (universe view) */
   if(iconA>0.01){
@@ -1196,6 +1282,17 @@ function drawStar(st,detailA,time){
   }
   /* planetary system */
   if(sysA>0.01){
+    /* the system's rubber sheet — deep sun well + moving planet dents */
+    if(sysA>0.02&&sysGridBudget>0){
+      sysGridBudget--;
+      const masses=[{x:st.wx,y:st.wy,m:st.sysR*0.15,soft:st.sysR*0.1,max:st.sysR*0.3}];
+      for(const pl of st.planets){
+        masses.push({x:st.wx+Math.cos(pl.ang)*pl.orbit*st.sysR,
+          y:st.wy+Math.sin(pl.ang)*pl.orbit*st.sysR*pl.squash,
+          m:st.sysR*pl.dev.size*0.0022,soft:st.sysR*0.03,max:st.sysR*0.06});
+      }
+      drawGrid(makeWarpGrid(st.wx,st.wy,st.sysR*1.4,9,masses),0.15*sysA,'141,151,181',time);
+    }
     for(const pl of st.planets){
       const orbW=pl.orbit*st.sysR;
       const orbR=apparent(orbW);
@@ -1212,6 +1309,15 @@ function drawStar(st,detailA,time){
       ctx.beginPath();ctx.arc(px,py,pr,0,7);ctx.fill();
       ctx.fillStyle=`rgba(4,7,15,${0.45*sysA})`;
       ctx.beginPath();ctx.arc(px+pr*0.35*Math.sign(px-x||1),py,pr*0.92,0,7);ctx.fill();
+      /* deep-zoom payoff: the home router, a moon in orbit */
+      if(pl.dev.moon&&pr>8){
+        const ma=(REDUCED?0:time*1.6)+pl.ang*4;
+        const morb=pr*2.2;
+        const mx2=px+Math.cos(ma)*morb,my2=py+Math.sin(ma)*morb*0.45;
+        ctx.fillStyle=`rgba(200,210,230,${0.85*sysA})`;
+        ctx.beginPath();ctx.arc(mx2,my2,Math.max(pr*0.22,1.2),0,7);ctx.fill();
+        if(pr>15)label(mx2,my2-pr*0.4-6,'home router — its moon',0.45*sysA,8.5);
+      }
       const isHovP=hover&&hover.obj===pl;
       if(isHovP||sel){ctx.strokeStyle=`rgba(${sel?'255,199,107':'125,224,255'},${0.6*sysA})`;ctx.lineWidth=1;ctx.beginPath();ctx.arc(px,py,pr+5,0,7);ctx.stroke();}
       label(px,py-pr-9,pl.dev.name.replace(/^An? /,''),(isHovP||sel?0.9:0.45)*sysA,9.5);
@@ -1251,7 +1357,7 @@ function frame(now){
     cam.x=flight.fx+(flight.tx-flight.fx)*e;
     cam.y=flight.fy+(flight.ty-flight.fy)*e;
     cam.z=Math.exp(flight.fz+(flight.tz-flight.fz)*e);
-    if(flight.t>=1)flight=null;
+    if(flight.t>=1){emitRipple(flight.tx,flight.ty,1.6);flight=null}
   }
 
   /* ambient motion */
@@ -1274,20 +1380,47 @@ function frame(now){
   }
   for(const p of sysPk){p.t+=p.speed*adt;if(p.t>1)p.t=0}
 
+  /* dynamic spacetime bookkeeping */
+  const K=cam.z*SCALE;
+  mouseW.x=cam.x+(mouse.x-CX)/K;
+  mouseW.y=cam.y+(mouse.y-CY)/K;
+  for(let i=ripples.length-1;i>=0;i--)if(time-ripples[i].t0>ripples[i].dur)ripples.splice(i,1);
+  for(const cm of comets)cm.th+=cm.sp*adt;
+  sysGridBudget=3;
+  let streak=0,zr=0;
+  if(!REDUCED&&prevZ){
+    zr=Math.log(cam.z/prevZ);
+    const panPx=Math.hypot(cam.x-prevX,cam.y-prevY)*K;
+    if(flight)streak=Math.min(1,Math.abs(zr)*9+panPx/700);
+  }
+  prevX=cam.x;prevY=cam.y;prevZ=cam.z;
+
   ctx.setTransform(DPR,0,0,DPR,0,0);
   ctx.fillStyle='#04070f';
   ctx.fillRect(0,0,W,H);
 
-  /* deep starfield with slight parallax */
+  /* deep starfield with slight parallax; streaks to warp speed during flight */
+  ctx.lineWidth=1;
   for(const st of starfield){
     const tw=REDUCED?1:0.7+0.3*Math.sin(time*st.ts+st.tw);
     let x=(st.x-cam.x*SCALE*st.layer)%W;if(x<0)x+=W;
     let y=(st.y-cam.y*SCALE*st.layer)%H;if(y<0)y+=H;
-    ctx.fillStyle=`rgba(214,224,248,${st.a*tw})`;
-    ctx.fillRect(x,y,st.r,st.r);
+    if(streak>0.08){
+      const dx=x-CX,dy=y-CY,dl=Math.hypot(dx,dy)+1;
+      const L=(4+dl*0.03)*streak*(zr>=0?1:-1);
+      ctx.strokeStyle=`rgba(214,224,248,${st.a*tw*0.85})`;
+      ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-dx/dl*L,y-dy/dl*L);ctx.stroke();
+    }else{
+      ctx.fillStyle=`rgba(214,224,248,${st.a*tw})`;
+      ctx.fillRect(x,y,st.r,st.r);
+    }
   }
 
   clickables=[];
+
+  /* the multiverse sheet — coarsest fabric, dented by whole universes */
+  const multiFabA=1-ss(cam.z,0.42,0.8);
+  if(multiFabA>0.01)drawGrid(MULTI_FABRIC,0.12*multiFabA,'76,110,180',time);
 
   /* universes: fabric, web, bubbles, filaments */
   for(const u of UNIVERSES)drawUniverseLayer(u,time);
@@ -1299,10 +1432,7 @@ function frame(now){
     for(const e of STRANDS){
       ctx.strokeStyle=`rgba(${e.tint},${0.3*strandA})`;
       ctx.setLineDash([3,8]);
-      ctx.beginPath();
-      ctx.moveTo(w2sX(e.ax),w2sY(e.ay));
-      ctx.quadraticCurveTo(w2sX(e.cx),w2sY(e.cy),w2sX(e.bx),w2sY(e.by));
-      ctx.stroke();
+      strokeEdge(e,time);
       ctx.setLineDash([]);
       e._a=strandA*0.8;
       if(cam.z<0.6)label(w2sX(e.lx),w2sY(e.ly)-8,e.lbl,0.4*strandA,8.5,`rgba(${e.tint},${0.75*strandA})`);
@@ -1314,7 +1444,8 @@ function frame(now){
     const a=p.e._a||0;
     if(a<0.02)continue;
     const[bx,by]=bezXY(p.e,p.dir>0?p.t:1-p.t);
-    const x=w2sX(bx),y=w2sY(by);
+    const wq=warp(bx,by,time);
+    const x=w2sX(bx+wq[0]),y=w2sY(by+wq[1]);
     if(x<-20||x>W+20||y<-20||y>H+20)continue;
     glow(x,y,5.5,[125,224,255],0.85*a);
     ctx.fillStyle=`rgba(210,245,255,${a})`;
