@@ -61,7 +61,8 @@ button{font:inherit;cursor:pointer}
   overflow:hidden;
   background:var(--void);
 }
-#cosmos{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:manipulation}
+#cosmos{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#cosmos.dragging{cursor:grabbing}
 #cosmos.clickable{cursor:pointer}
 
 .hud{position:absolute;inset:0;pointer-events:none}
@@ -87,6 +88,12 @@ button{font:inherit;cursor:pointer}
   color:var(--muted);
   font-size:clamp(14px,1.6vw,17px);
   font-style:italic;
+}
+#cover .controls{
+  margin-top:16px;
+  font-family:var(--mono);
+  font-size:10.5px;letter-spacing:.22em;
+  color:var(--faint);
 }
 .hidden-hud{opacity:0 !important;transform:translateY(-8px);visibility:hidden;transition:opacity .4s ease, transform .4s ease, visibility 0s .4s}
 
@@ -167,10 +174,15 @@ button{font:inherit;cursor:pointer}
 #scrollCue{
   position:absolute;left:50%;bottom:14px;transform:translateX(-50%);
   font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
-  color:var(--faint);
+  color:var(--muted);
+  background:rgba(7,11,23,.72);
+  border:1px solid var(--panel-edge);
+  border-radius:4px;
+  padding:8px 14px;
+  backdrop-filter:blur(6px);
   animation:cueFloat 2.6s ease-in-out infinite;
-  pointer-events:none;
 }
+#scrollCue:hover{color:var(--ink)}
 @keyframes cueFloat{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,6px)}}
 
 /* ---------- ATLAS PLATES (sections) ---------- */
@@ -253,9 +265,9 @@ footer{
   #panel .desc{display:none}
   #panel .stats{grid-template-columns:1fr;gap:5px;margin-top:8px}
   #panel .stats li:nth-child(n+3){display:none}
-  #crumbs{top:12px;left:12px}
-  #backBtn{top:56px;left:12px}
-  #scrollCue{display:none}
+  #crumbs{top:12px;left:12px;max-width:calc(100vw - 150px)}
+  #backBtn{top:72px;left:12px}
+  #scrollCue{left:auto;right:12px;top:12px;bottom:auto;transform:none;animation:none;padding:8px 10px}
 }
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
@@ -273,6 +285,7 @@ footer{
       <span class="eyebrow">A Field Atlas · Observed 2025</span>
       <h1>The Internet,<br>drawn as <em>a universe</em></h1>
       <p class="sub">Every star a server, every filament a cable under the sea.</p>
+      <p class="controls">DRAG TO ROAM &nbsp;·&nbsp; SCROLL OR PINCH TO DIVE &nbsp;·&nbsp; CLICK TO FLY</p>
     </div>
 
     <nav id="crumbs" aria-label="Map location"></nav>
@@ -280,7 +293,7 @@ footer{
 
     <aside id="panel" aria-live="polite"></aside>
     <div id="tip" role="presentation"></div>
-    <div id="scrollCue">Scroll for the field notes &darr;</div>
+    <button id="scrollCue" type="button">Field notes &darr;</button>
   </div>
 </header>
 
@@ -399,10 +412,9 @@ footer{
 <script>
 'use strict';
 /* ==================================================================
-   THE COSMOS — three-level drill-down canvas
-   Level 0: universe (galaxies = platform/cloud clusters)
-   Level 1: galaxy   (stars = services / data-center regions)
-   Level 2: system   (planets = client devices orbiting a service)
+   THE COSMOS — one continuous world space
+   multiverse > universe > galaxy > star system > planet,
+   free flight throughout: drag pans, scroll/pinch zooms, click flies.
    ================================================================== */
 
 /* ---------- tiny seeded PRNG so the sky is the same every night ---------- */
@@ -518,6 +530,78 @@ const GALAXIES=[
 /* filaments between galaxies (indices into GALAXIES) */
 const EDGES=[[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,8],[1,4],[2,3],[1,7],[2,6],[3,6],[4,5],[5,7],[6,8],[1,2],[4,7]];
 
+/* ==================================================================
+   THE COSMOS ENGINE — continuous free flight
+   One world space, one camera. Drag to roam, scroll/pinch to dive.
+   Content resolves by apparent size (semantic zoom):
+   multiverse → universe → galaxy → star system → planet.
+   ================================================================== */
+
+/* ---------- the other universes ---------- */
+function U(id,short,name,sub,x,y,rad,spread,tint,desc,stats,galaxies,edgeIdx){
+  return{id,short,name,sub,x,y,rad,spread,tint,desc,stats,galaxies,edgeIdx};
+}
+const DARK_GALAXIES=[
+  G('tor','The Onion Nebula','Tor — the hidden service cloud',-0.16,-0.05,0.11,'nebula',[178,140,255],
+    'Light in here travels wrapped in three layers of encryption, bouncing between volunteer relays so no one can see both ends of a path.',
+    [['Daily users','~2–3 M'],['Volunteer relays','~7,000'],['Physics','onion routing']],
+    [ S('Hidden services','.onion addresses','Sites that exist only inside this universe — their location is a property light cannot carry out.',[['Address form','56-char .onion'],['Reachable from outside','never directly']],0.8),
+      S('The relay mesh','~7,000 volunteer stars','Every packet hops three relays: guard, middle, exit. No single star knows the whole path.',[['Hops per circuit','3'],['Run by','volunteers']],0.65),
+      S('Exit nodes','where light re-enters','The rare stars where darknet light crosses back into the public universe.',[['Share of relays','~15%']],0.5),
+      S('Bridges','unlisted doors','Secret entrances for travellers whose home universe blocks the marked ones.',[['Listed publicly','no']],0.4)]),
+  G('i2p','The I2P Cluster','A smaller hidden galaxy',0.28,0.24,0.07,'irregular',[178,140,255],
+    'A second, smaller hidden universe-within-a-universe: garlic routing, one-way tunnels, and sites called eepsites.',
+    [['Routing','garlic (bundled cloves)'],['Tunnels','one-way, paired']],
+    [ S('Eepsites','.i2p destinations','Sites addressed by cryptographic identity, not location.',[['TLD','.i2p']],0.6),
+      S('The router mesh','every user is a star','In I2P, every visitor is also part of the network that hides everyone else.',[['Architecture','fully peer-to-peer']],0.45)])
+];
+const INTRA_GALAXIES=[
+  G('corp','The Corporate WANs','Office universes behind the wall',-0.16,-0.07,0.1,'spiral',[170,190,220],
+    'Millions of private galaxies that borrow the internet’s physics but not its openness. From out here, each is a single dark star.',
+    [['Visible from outside','one IP address'],['Inside','thousands of machines']],
+    [ S('The VPN gateway','the only bridge','Every worker tunnels through this one star to get inside. The wall has exactly one gate.',[['Protocol','WireGuard / IPsec'],['Role','the drawbridge']],0.8),
+      S('Active Directory','the corporate star catalogue','Knows every user, every machine, every permission. The gravity that holds an intranet together.',[['Knows','everyone & everything']],0.6),
+      S('The file servers','decades of sediment','Terabytes of documents in folders named FINAL_v2_REALLY.',[['Age of oldest file','unknowable']],0.45),
+      S('The printer','offline again','The most contacted and least responsive body in any office universe.',[['Status','offline'],['Status (retry)','offline']],0.3)]),
+  G('scada','The Air-Gapped Systems','No cables cross this void',0.26,0.18,0.085,'irregular',[170,190,220],
+    'Power grids, water plants, classified networks. Deliberately cut off — universes where the expansion never reaches, because touching them must stay hard.',
+    [['Connection to internet','none, by design'],['Attack surface','a USB stick']],
+    [ S('SCADA systems','industrial control','The machines that run turbines, valves and assembly lines. Isolation is their armor.',[['Protocols','Modbus, DNP3'],['Uptime measured in','decades']],0.6),
+      S('Classified networks','the sealed universes','Government systems physically separated from everything on this map.',[['Bridge to internet','air']],0.45)])
+];
+const PSTN_GALAXIES=[
+  G('circuit','The Circuit-Switched Galaxy','The ancestor’s architecture',-0.12,-0.02,0.1,'spiral',[255,190,140],
+    'Before packets, a call meant a physical circuit — a continuous copper path held open just for you, across the whole planet.',
+    [['Born','1878, first exchange'],['Peak','~1.3 B landlines']],
+    [ S('Telephone exchanges','the first switching fabric','Rooms of relays (then software) that connected any two of a billion copper lines.',[['First exchange','New Haven, 1878'],['Switching','circuit, not packet']],0.75),
+      S('SS7 signalling','the ancestor of protocols','The control language of the phone universe — and the intellectual ancestor of internet signalling.',[['Born','1975']],0.5),
+      S('The first filament','transatlantic telegraph, 1858','The internet’s submarine cables follow routes this universe surveyed 160 years earlier.',[['First message','16 hours to send']],0.6)]),
+  G('dying','The Dying Stars','Still burning, faintly',0.3,0.24,0.07,'irregular',[255,190,140],
+    'Technologies past their supernova, glowing on residual heat and institutional inertia.',
+    [['Fax machines in use','millions, still'],['Telegram service','ended 2006 STOP']],
+    [ S('Fax','the undead star','Hospitals and law offices keep this 1970s star burning well into the zettabyte age.',[['Peak year','1997'],['Still legal proof in','many countries']],0.5),
+      S('Dial-up','the cosmic background hiss','56 kbit/s — the sound of the early universe. Some thousands of souls still connect this way.',[['Bandwidth','56 kbit/s'],['One 4K film at 56k','~19 years']],0.4)])
+];
+
+const UNIVERSES=[
+  U('internet','Internet','The Internet','the public universe',0,0,1.15,0.86,[125,224,255],
+    'The observable, public universe: everything with a routable address. Its fabric — the grid you can see bending — is capacity itself, warped by the mass of the big platforms.',
+    [['People inside','5.6 B (68% of humanity)'],['Websites','~1.2 B (~200 M active)'],['Submarine cables','~600 · 1.5 M km'],['All stored data','~181 zettabytes']],
+    GALAXIES,EDGES),
+  U('darknet','Darknet','The Darknet','the hidden universe',3.3,-1.7,0.55,1,[178,140,255],
+    'A universe deliberately built so light cannot be traced — overlay networks riding on top of the public internet, visible only from inside.',
+    [['Tor daily users','~2–3 M'],['Relays','~7,000 volunteers'],['Locatable from outside','no']],
+    DARK_GALAXIES,[[0,1]]),
+  U('intranet','Intranets','The Walled Universes','private networks & air gaps',-3.4,-1.5,0.6,1,[170,190,220],
+    'Uncounted millions of private universes — corporate networks, home LANs, industrial systems — each sealed behind its own wall. No filaments cross the moat.',
+    [['Private IPv4 space','10.x, 172.16.x, 192.168.x'],['Devices inside','billions, uncounted'],['Filaments to outside','one gateway each']],
+    INTRA_GALAXIES,[]),
+  U('pstn','The PSTN','The Ancestor Universe','the telephone network, b. 1878',0.3,3.4,0.5,1,[255,190,140],
+    'The universe that came before — circuit-switched, copper-veined, and still not quite gone. The internet was born inside it, then outgrew it.',
+    [['Age','147 years'],['Peak landlines','~1.3 B'],['Relation','the internet’s parent']],
+    PSTN_GALAXIES,[[0,1]])
+];
+
 /* ---------- canvas setup ---------- */
 const canvas=document.getElementById('cosmos');
 const ctx=canvas.getContext('2d');
@@ -533,7 +617,7 @@ function resize(){
 }
 addEventListener('resize',resize);
 
-/* ---------- background starfield (websites) ---------- */
+/* ---------- background starfield (screen-space, parallax) ---------- */
 let starfield=[];
 function buildStarfield(){
   const rnd=mulberry32(20251029);
@@ -541,12 +625,12 @@ function buildStarfield(){
   const n=Math.round(W*H/4200);
   for(let i=0;i<n;i++){
     starfield.push({x:rnd()*W,y:rnd()*H,r:rnd()<0.85?rnd()*0.9+0.3:rnd()*1.6+0.8,
-      a:0.12+rnd()*0.5,tw:rnd()*Math.PI*2,ts:0.3+rnd()*1.2,layer:rnd()<0.5?0.15:0.35});
+      a:0.12+rnd()*0.5,tw:rnd()*Math.PI*2,ts:0.3+rnd()*1.2,layer:rnd()<0.5?0.05:0.12});
   }
 }
 
-/* ---------- precomputed galaxy particle clouds ---------- */
-for(const [gi,g] of GALAXIES.entries()){
+/* ---------- per-galaxy precompute: particle cloud, star layout, planets ---------- */
+function initGalaxy(g,gi){
   const rnd=mulberry32(1000+gi*77);
   g.particles=[];
   const n=g.kind==='core'?220:g.kind==='nebula'?150:240;
@@ -563,18 +647,16 @@ for(const [gi,g] of GALAXIES.entries()){
     }else if(g.kind==='irregular'){
       const cx=(rnd()-0.5)*1.2,cyy=(rnd()-0.5)*1.2;
       px=cx+(rnd()-0.5)*0.5;py=cyy+(rnd()-0.5)*0.5;heat=0.3+rnd()*0.45;
-    }else{ /* spiral */
+    }else{
       const arm=i%2,t=Math.pow(rnd(),0.75);
       const ang=t*3.6*Math.PI/2+arm*Math.PI+(rnd()-0.5)*0.55;
       const rr=0.12+t*0.92;
       px=Math.cos(ang)*rr;py=Math.sin(ang)*rr;heat=1-t*0.8;
     }
-    /* apply squash + tilt */
     py*=g.squash;
     const c=Math.cos(g.tilt),s=Math.sin(g.tilt);
     g.particles.push({x:px*c-py*s,y:px*s+py*c,heat,sz:rnd()<0.9?0.55+rnd()*0.9:1.3+rnd()*1.2,a:0.35+rnd()*0.65,tw:rnd()*7});
   }
-  /* star (service) layout inside the galaxy — a wide spiral */
   const rnd2=mulberry32(5000+gi*13);
   const m=g.stars.length;
   g.stars.forEach((st,si)=>{
@@ -584,7 +666,6 @@ for(const [gi,g] of GALAXIES.entries()){
       const rr=0.34+((si-1)/(m-1))*0.6;
       st.gx=Math.cos(ang)*rr; st.gy=Math.sin(ang)*rr*0.72;
     }
-    /* planets for this star */
     const pn=3+Math.floor(rnd2()*3);
     st.planets=[];
     const used=new Set();
@@ -594,112 +675,260 @@ for(const [gi,g] of GALAXIES.entries()){
       used.add(di);
       st.planets.push({dev:DEVICES[di],orbit:0.34+k*0.16+rnd2()*0.05,
         ang:rnd2()*Math.PI*2,speed:(0.12+rnd2()*0.1)/(1+k*0.6)*(rnd2()<0.5?1:-1),
-        squash:0.94});
+        squash:0.94,star:st});
     }
   });
 }
 
-/* ---------- packets on filaments ---------- */
-const rndP=mulberry32(42);
-for(const e of EDGES){
-  const a=GALAXIES[e[0]],b=GALAXIES[e[1]];
-  const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
-  const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1;
-  const bend=(rndP()-0.5)*0.5;
-  e.cx=mx-dy/len*bend; e.cy=my+dx/len*bend;
+/* ---------- world-coordinate init ---------- */
+let giSeed=0;
+const ALL_EDGES=[];   /* {ax,ay,bx,by,cx,cy,univ|strand,tint,dash} */
+const STRANDS=[];
+const rndW=mulberry32(42);
+for(const u of UNIVERSES){
+  for(const g of u.galaxies){
+    initGalaxy(g,giSeed++);
+    g.univ=u;
+    g.wx=u.x+g.x*u.spread;
+    g.wy=u.y+g.y*u.spread;
+    g.detR=g.r*2.4;
+    g.stars.forEach(st=>{
+      st.wx=g.wx+st.gx*g.detR;
+      st.wy=g.wy+st.gy*g.detR;
+      st.sysR=g.detR*0.13;
+      st.gal=g;
+    });
+  }
+  /* internal filaments */
+  for(const [ia,ib] of u.edgeIdx){
+    const a=u.galaxies[ia],b=u.galaxies[ib];
+    const mx=(a.wx+b.wx)/2,my=(a.wy+b.wy)/2;
+    const dx=b.wx-a.wx,dy=b.wy-a.wy,len=Math.hypot(dx,dy)||1;
+    const bend=(rndW()-0.5)*0.4*len;
+    ALL_EDGES.push({ax:a.wx,ay:a.wy,bx:b.wx,by:b.wy,cx:mx-dy/len*bend,cy:my+dx/len*bend,univ:u});
+  }
+  /* the spacetime fabric: a lattice warped by galactic mass */
+  const N=13,ext=u.rad*1.3;
+  u.fabric=[];
+  for(let r=0;r<N;r++){
+    const row=[];
+    for(let c=0;c<N;c++){
+      let vx=u.x-ext+2*ext*c/(N-1), vy=u.y-ext+2*ext*r/(N-1);
+      for(const g of u.galaxies){
+        const dx=g.wx-vx,dy=g.wy-vy,d=Math.hypot(dx,dy)+1e-6;
+        const pull=Math.min(Math.min(g.r*0.055/(d+0.06),d*0.55),0.1);
+        vx+=dx/d*pull;vy+=dy/d*pull;
+      }
+      row.push([vx,vy]);
+    }
+    u.fabric.push(row);
+  }
+  /* the fine cosmic web: website-stars strung on faint strands */
+  const rndX=mulberry32(777+u.x*31|0);
+  const nodes=[];
+  const nn=Math.round(70+u.rad*70);
+  for(let i=0;i<nn;i++){
+    const a=rndX()*Math.PI*2,rr=u.rad*(0.1+0.95*Math.sqrt(rndX()));
+    nodes.push([u.x+Math.cos(a)*rr,u.y+Math.sin(a)*rr*0.85]);
+  }
+  u.webNodes=nodes;
+  u.webEdges=[];
+  for(let i=0;i<nodes.length;i++){
+    const dists=nodes.map((p,j)=>[Math.hypot(p[0]-nodes[i][0],p[1]-nodes[i][1]),j]).sort((a,b)=>a[0]-b[0]);
+    for(let k=1;k<=2;k++){
+      const j=dists[k][1];
+      if(j>i)u.webEdges.push([nodes[i][0],nodes[i][1],nodes[j][0],nodes[j][1]]);
+    }
+  }
 }
-const packets=[];
-for(let i=0;i<46;i++){
-  packets.push({e:EDGES[Math.floor(rndP()*EDGES.length)],t:rndP(),speed:0.10+rndP()*0.16,dir:rndP()<0.5?1:-1});
+/* strands between universes */
+function strand(ua,ub,tint,lbl){
+  const a=UNIVERSES.find(u=>u.id===ua),b=UNIVERSES.find(u=>u.id===ub);
+  const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy);
+  const ax=a.x+dx/len*a.rad*0.75,ay=a.y+dy/len*a.rad*0.75;
+  const bx=b.x-dx/len*b.rad*0.75,by=b.y-dy/len*b.rad*0.75;
+  const mx=(ax+bx)/2,my=(ay+by)/2;
+  const cx=mx-dy/len*0.35,cy=my+dx/len*0.35;
+  /* label sits 2/3 along the curve, clear of the internet bubble's caption */
+  const t=0.68,u2=1-t;
+  const e={ax,ay,bx,by,cx,cy,strand:true,tint,lbl,
+    lx:u2*u2*ax+2*u2*t*cx+t*t*bx, ly:u2*u2*ay+2*u2*t*cy+t*t*by};
+  ALL_EDGES.push(e);STRANDS.push(e);
 }
-function bez(e,t){
-  const a=GALAXIES[e[0]],b=GALAXIES[e[1]],u=1-t;
-  return [u*u*a.x+2*u*t*e.cx+t*t*b.x, u*u*a.y+2*u*t*e.cy+t*t*b.y];
-}
+strand('internet','darknet','178,140,255','TOR RIDES THE PUBLIC INTERNET');
+strand('internet','pstn','255,190,140','DSL STILL RIDES THE PHONE LINES');
 
-/* local traffic inside a galaxy (between its stars) */
+/* ---------- packets ---------- */
+function bezXY(e,t){
+  const u=1-t;
+  return [u*u*e.ax+2*u*t*e.cx+t*t*e.bx, u*u*e.ay+2*u*t*e.cy+t*t*e.by];
+}
+const internetEdges=ALL_EDGES.filter(e=>e.univ&&e.univ.id==='internet');
+const packets=[];
+{
+  const rp=mulberry32(9);
+  for(let i=0;i<52;i++){
+    const pool=i<40?internetEdges:ALL_EDGES;
+    packets.push({e:pool[Math.floor(rp()*pool.length)],t:rp(),speed:0.10+rp()*0.16,dir:rp()<0.5?1:-1});
+  }
+}
+/* local traffic inside the focused galaxy */
 const localPk=[];
 for(let i=0;i<14;i++)localPk.push({a:0,b:0,t:Math.random(),speed:0.25+Math.random()*0.3});
 function seedLocal(g){
   const m=g.stars.length;
   for(const p of localPk){p.a=Math.floor(Math.random()*m);p.b=Math.floor(Math.random()*m);if(p.b===p.a)p.b=(p.b+1)%m;p.t=Math.random();}
 }
-
-/* request/response photons in a star system */
+/* request/response photons in the focused star system */
 const sysPk=[];
 function seedSys(star){
   sysPk.length=0;
   star.planets.forEach((pl,pi)=>{
     const n=2+(pi%2);
-    for(let k=0;k<n;k++)sysPk.push({pi,t:Math.random(),speed:0.5+Math.random()*0.5,dir:Math.random()<0.5?1:-1});
+    for(let k=0;k<n;k++)sysPk.push({pl,t:Math.random(),speed:0.5+Math.random()*0.5,dir:Math.random()<0.5?1:-1});
   });
 }
 
-/* ---------- navigation state ---------- */
-const nav={level:0,g:null,s:null,planet:null};
-let trans=null; /* {dir:+1 in / -1 out, t, fromLevel, pivot:{x,y} screen coords of the object we dive into} */
-const Z=6.5;
+/* ---------- camera ---------- */
+const cam={x:0,y:0,z:1};
+const ZMIN=0.13,ZMAX=120;
+let flight=null;
 function easeInOut(t){return t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2}
-
-function screenPosOfGalaxy(g){return[CX+g.x*SCALE*0.86,CY+g.y*SCALE*0.86]}
-function screenPosOfStar(st){return[CX+st.gx*SCALE*0.78,CY+st.gy*SCALE*0.78]}
-
-function goIn(target){
-  if(trans)return;
-  if(nav.level===0){nav.g=target;seedLocal(target);}
-  else if(nav.level===1){nav.s=target;seedSys(target);}
-  else return;
-  const pivot=nav.level===0?screenPosOfGalaxy(target):screenPosOfStar(target);
-  trans={dir:1,t:0,pivot:{x:pivot[0],y:pivot[1]}};
-  nav.level++;nav.planet=null;
-  if(REDUCED)trans.t=1;
-  syncHud();
+function flyTo(x,y,z,dur){
+  flight={t:0,dur:REDUCED?0.001:(dur||1.15),fx:cam.x,fy:cam.y,fz:Math.log(cam.z),tx:x,ty:y,tz:Math.log(Math.max(ZMIN,Math.min(ZMAX,z)))};
 }
-function goOut(toLevel){
-  if(trans||nav.level===0)return;
-  if(toLevel==null)toLevel=nav.level-1;
-  toLevel=Math.max(0,Math.min(toLevel,nav.level-1));
-  /* stepwise zoom-outs land at the right pivot each time */
-  const stepOut=()=>{
-    const obj=nav.level===1?nav.g:nav.s;
-    const pivot=nav.level===1?screenPosOfGalaxy(obj):screenPosOfStar(obj);
-    trans={dir:-1,t:0,pivot:{x:pivot[0],y:pivot[1]},chainTo:toLevel};
-    nav.level--;nav.planet=null;
-    if(REDUCED)trans.t=1;
-    syncHud();
-  };
-  stepOut();
+function zoomAt(mx,my,k){
+  const nz=Math.max(ZMIN,Math.min(ZMAX,cam.z*k));
+  const wx=cam.x+(mx-CX)/(cam.z*SCALE), wy=cam.y+(my-CY)/(cam.z*SCALE);
+  cam.z=nz;
+  cam.x=wx-(mx-CX)/(cam.z*SCALE);
+  cam.y=wy-(my-CY)/(cam.z*SCALE);
 }
+const apparent=r=>r*cam.z*SCALE;
+const w2sX=wx=>(wx-cam.x)*cam.z*SCALE+CX;
+const w2sY=wy=>(wy-cam.y)*cam.z*SCALE+CY;
+function vis(wx,wy,wr){
+  const r=apparent(wr),x=w2sX(wx),y=w2sY(wy);
+  return x+r>-80&&x-r<W+80&&y+r>-80&&y-r<H+80;
+}
+function ss(x,a,b){const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)}
+
+/* fly-to targets per level */
+const flyUniverse=u=>flyTo(u.x,u.y,0.85/u.rad,1.25);
+const flyGalaxy=g=>flyTo(g.wx,g.wy,1.44/g.detR,1.25);
+const flyStar=st=>flyTo(st.wx,st.wy,0.72/st.sysR,1.3);
+const flyMultiverse=()=>flyTo(0,0.5,0.2,1.35);
+
+/* ---------- pointer controls ---------- */
+const pointers=new Map();
+let dragDist=0,coverGone=false;
+function hideCover(){
+  if(coverGone)return;coverGone=true;
+  coverEl.classList.add('hidden-hud');
+}
+canvas.addEventListener('pointerdown',e=>{
+  canvas.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId,{x:e.offsetX,y:e.offsetY});
+  dragDist=0;flight=null;hideCover();
+  canvas.classList.add('dragging');
+});
+canvas.addEventListener('pointermove',e=>{
+  mouse.x=e.offsetX;mouse.y=e.offsetY;
+  if(!pointers.has(e.pointerId))return;
+  const prev=pointers.get(e.pointerId);
+  const cur={x:e.offsetX,y:e.offsetY};
+  if(pointers.size===1){
+    cam.x-=(cur.x-prev.x)/(cam.z*SCALE);
+    cam.y-=(cur.y-prev.y)/(cam.z*SCALE);
+    dragDist+=Math.hypot(cur.x-prev.x,cur.y-prev.y);
+  }else if(pointers.size===2){
+    const ids=[...pointers.keys()];
+    const other=pointers.get(ids[0]===e.pointerId?ids[1]:ids[0]);
+    const pm={x:(prev.x+other.x)/2,y:(prev.y+other.y)/2};
+    const cm={x:(cur.x+other.x)/2,y:(cur.y+other.y)/2};
+    const pd=Math.hypot(prev.x-other.x,prev.y-other.y)||1;
+    const cd=Math.hypot(cur.x-other.x,cur.y-other.y)||1;
+    zoomAt(cm.x,cm.y,cd/pd);
+    cam.x-=(cm.x-pm.x)/(cam.z*SCALE);
+    cam.y-=(cm.y-pm.y)/(cam.z*SCALE);
+    dragDist+=3;
+  }
+  pointers.set(e.pointerId,cur);
+});
+function endPointer(e){
+  pointers.delete(e.pointerId);
+  if(pointers.size===0)canvas.classList.remove('dragging');
+}
+canvas.addEventListener('pointerup',endPointer);
+canvas.addEventListener('pointercancel',endPointer);
+canvas.addEventListener('pointerleave',e=>{if(!pointers.has(e.pointerId)){mouse.x=-1e4;mouse.y=-1e4}});
+canvas.addEventListener('wheel',e=>{
+  e.preventDefault();flight=null;hideCover();
+  zoomAt(e.offsetX,e.offsetY,Math.exp(-e.deltaY*0.0016));
+},{passive:false});
 
 /* ---------- HUD ---------- */
 const crumbsEl=document.getElementById('crumbs');
 const backBtn=document.getElementById('backBtn');
 const panelEl=document.getElementById('panel');
 const coverEl=document.getElementById('cover');
-const cueEl=document.getElementById('scrollCue');
 const tipEl=document.getElementById('tip');
+document.getElementById('scrollCue').addEventListener('click',()=>{
+  document.getElementById('connected').scrollIntoView({behavior:REDUCED?'auto':'smooth'});
+});
+backBtn.addEventListener('click',()=>escUp());
+addEventListener('keydown',e=>{if(e.key==='Escape')escUp()});
+function escUp(){
+  hideCover();
+  if(state.planet){state.planet=null;refreshHud(true);return}
+  const c=state.ctx;
+  if(c.s)flyGalaxy(c.s.gal);
+  else if(c.g)flyUniverse(c.g.univ);
+  else if(c.u)flyMultiverse();
+}
 
-backBtn.addEventListener('click',()=>goOut());
-addEventListener('keydown',e=>{if(e.key==='Escape')goOut()});
+const state={ctx:{u:UNIVERSES[0],g:null,s:null},planet:null,sig:''};
 
-function crumb(label,level,disabled){
+function computeContext(){
+  let u=null,ud=1e9;
+  for(const uu of UNIVERSES){const d=Math.hypot(cam.x-uu.x,cam.y-uu.y);if(d<ud){ud=d;u=uu}}
+  const c={u:null,g:null,s:null};
+  if(u.rad*cam.z>0.4&&ud<u.rad*2.6)c.u=u;else return c;
+  let g=null,gd=1e9;
+  for(const gg of u.galaxies){const d=Math.hypot(cam.x-gg.wx,cam.y-gg.wy);if(d<gd){gd=d;g=gg}}
+  if(g&&g.detR*cam.z>1.15&&gd<g.detR*1.9)c.g=g;else return c;
+  let s=null,sd=1e9;
+  for(const st of g.stars){const d=Math.hypot(cam.x-st.wx,cam.y-st.wy);if(d<sd){sd=d;s=st}}
+  if(s&&s.sysR*cam.z>0.5&&sd<s.sysR*4)c.s=s;
+  return c;
+}
+
+function crumbBtn(label,fn,disabled){
   const b=document.createElement('button');
   b.className='seg';b.type='button';b.textContent=label;
-  if(disabled)b.disabled=true;
-  else b.addEventListener('click',()=>goOut(level));
+  if(disabled)b.disabled=true;else b.addEventListener('click',fn);
   return b;
 }
 function sep(){const s=document.createElement('span');s.className='sep';s.textContent='›';return s}
 
-function syncHud(){
+function refreshHud(force){
+  const c=state.ctx;
+  /* when a planet is selected, derive the chain from ITS star —
+     it may live in a neighboring system, not the camera's context one */
+  const sStar=state.planet?state.planet.star:c.s;
+  const gGal=state.planet?state.planet.star.gal:c.g;
+  const uUni=gGal?gGal.univ:c.u;
+  const sig=[uUni&&uUni.id,gGal&&gGal.id,sStar&&sStar.name,state.planet&&state.planet.dev.name].join('|');
+  if(!force&&sig===state.sig)return;
+  state.sig=sig;
   crumbsEl.replaceChildren();
-  crumbsEl.appendChild(crumb('Universe',0,nav.level===0));
-  if(nav.level>=1){crumbsEl.appendChild(sep());crumbsEl.appendChild(crumb(nav.g.name.replace(/^The /,''),1,nav.level===1))}
-  if(nav.level>=2){crumbsEl.appendChild(sep());crumbsEl.appendChild(crumb(nav.s.name,2,true))}
-  if(nav.planet){crumbsEl.appendChild(sep());const s=document.createElement('span');s.className='seg';s.style.color='var(--core)';s.textContent=nav.planet.dev.name;crumbsEl.appendChild(s)}
-  backBtn.classList.toggle('show',nav.level>0);
-  coverEl.classList.toggle('hidden-hud',nav.level>0);
-  cueEl.classList.toggle('hidden-hud',nav.level>0);
+  const deepest=state.planet?'p':sStar?'s':gGal?'g':uUni?'u':'m';
+  crumbsEl.appendChild(crumbBtn('Multiverse',()=>flyMultiverse(),deepest==='m'));
+  if(uUni){crumbsEl.appendChild(sep());crumbsEl.appendChild(crumbBtn(uUni.short,()=>flyUniverse(uUni),deepest==='u'))}
+  if(gGal){crumbsEl.appendChild(sep());crumbsEl.appendChild(crumbBtn(gGal.name.replace(/^The /,''),()=>flyGalaxy(gGal),deepest==='g'))}
+  if(sStar){crumbsEl.appendChild(sep());crumbsEl.appendChild(crumbBtn(sStar.name,()=>flyStar(sStar),deepest==='s'&&!state.planet))}
+  if(state.planet){crumbsEl.appendChild(sep());const s=document.createElement('span');s.className='seg';s.style.color='var(--core)';s.textContent=state.planet.dev.name;crumbsEl.appendChild(s)}
+  backBtn.classList.toggle('show',deepest!=='m');
   renderPanel();
 }
 
@@ -710,33 +939,29 @@ function panelHTML(eyebrow,title,desc,stats,hint){
   return h;
 }
 function renderPanel(){
-  let h='';
-  if(nav.planet){
-    const d=nav.planet.dev;
-    h=panelHTML('Planet · a client device',d.name,d.desc+' Every request it makes travels as light in glass at roughly two-thirds the speed of light.',d.stats,'Click elsewhere to release · esc zooms out');
-  }else if(nav.level===0){
-    h=panelHTML('You are looking at · the observable internet','Galaxies, filaments, light',
-      'Each galaxy is a cluster of servers and services; the filaments between them are submarine cables; every moving spark is data in flight.',
-      [['People inside','5.6 B (68% of humanity)'],['Websites','~1.2 B (~200 M active)'],['Submarine cables','~600 · 1.5 M km'],['All stored data','~181 zettabytes']],
-      'Click a galaxy to fall in');
-  }else if(nav.level===1){
-    h=panelHTML('Galaxy · '+nav.g.sub,nav.g.name,nav.g.desc,nav.g.stats,'Click a star to enter its system');
+  const c=state.ctx;let h;
+  if(state.planet){
+    const d=state.planet.dev;
+    h=panelHTML('Planet · a client device',d.name,d.desc+' Every request it makes travels as light in glass at roughly two-thirds the speed of light.',d.stats,'Click empty space to release · esc zooms out');
+  }else if(c.s){
+    h=panelHTML('Star · '+c.s.sub,c.s.name,c.s.desc,c.s.stats,'Click a planet — or zoom right up to one');
+  }else if(c.g){
+    h=panelHTML('Galaxy · '+c.g.sub,c.g.name,c.g.desc,c.g.stats,'Keep diving into a star, or drag to the next galaxy');
+  }else if(c.u){
+    h=panelHTML('Universe · '+c.u.sub,c.u.name,c.u.desc,c.u.stats,'Scroll to dive into a galaxy · zoom out to leave');
   }else{
-    h=panelHTML('Star · '+nav.s.sub,nav.s.name,nav.s.desc,nav.s.stats,'Click a planet — each is a device connecting to this service');
+    h=panelHTML('You are adrift in · the multiverse','Four universes, one fabric',
+      'The public internet is only the visible universe. Around it float the ones that hide, the ones that wall themselves off, and the one it was born from.',
+      [['The Internet','public · 5.6 B people'],['The Darknet','hidden · rides the internet'],['The Intranets','walled · air-gapped'],['The PSTN','ancestor · b. 1878']],
+      'Click a universe to enter it');
   }
   panelEl.innerHTML=h;
 }
 
-/* ---------- hit testing / pointer ---------- */
-let clickables=[]; /* rebuilt each frame: {x,y,r,obj,kind,label,sub} */
+/* ---------- hit testing ---------- */
+let clickables=[];
 let hover=null;
 let mouse={x:-1e4,y:-1e4};
-
-canvas.addEventListener('pointermove',e=>{
-  const rect=canvas.getBoundingClientRect();
-  mouse.x=e.clientX-rect.left;mouse.y=e.clientY-rect.top;
-});
-canvas.addEventListener('pointerleave',()=>{mouse.x=-1e4;mouse.y=-1e4});
 function pickAt(x,y){
   let best=null,bd=1e9;
   for(const c of clickables){
@@ -746,19 +971,21 @@ function pickAt(x,y){
   return best;
 }
 canvas.addEventListener('click',e=>{
-  if(trans)return;
-  const rect=canvas.getBoundingClientRect();
-  /* pick from the click's own coordinates — touch taps have no prior hover frame */
-  const target=pickAt(e.clientX-rect.left,e.clientY-rect.top);
-  if(target){
-    if(target.kind==='planet'){nav.planet=target.obj;syncHud();}
-    else goIn(target.obj);
-  }else if(nav.planet){nav.planet=null;syncHud();}
+  if(dragDist>6)return;
+  hideCover();
+  const t=pickAt(e.offsetX,e.offsetY);
+  if(t){
+    if(t.kind==='planet'){state.planet=t.obj;refreshHud(true)}
+    else{
+      state.planet=null;
+      if(t.kind==='universe')flyUniverse(t.obj);
+      else if(t.kind==='galaxy')flyGalaxy(t.obj);
+      else if(t.kind==='star')flyStar(t.obj);
+      refreshHud(true);
+    }
+  }else if(state.planet){state.planet=null;refreshHud(true)}
 });
-
 function pickHover(){
-  hover=null;
-  if(trans){canvas.classList.remove('clickable');tipEl.style.opacity=0;return}
   hover=pickAt(mouse.x,mouse.y);
   canvas.classList.toggle('clickable',!!hover);
   if(hover){
@@ -776,153 +1003,231 @@ function glow(x,y,r,rgb,a){
   ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
 }
 function heatColor(heat,tint){
-  /* hot center = amber-white, cool rim = blue-white, tinted per-galaxy */
   const r=Math.round(200+heat*55), gg=Math.round(190+heat*40), b=Math.round(255-heat*70);
   return [Math.round((r+tint[0])/2),Math.round((gg+tint[1])/2),Math.round((b+tint[2])/2)];
 }
 function label(x,y,text,alpha,size,color){
+  if(alpha<=0.01)return;
   ctx.font=`${size||11}px ui-monospace, Menlo, monospace`;
   ctx.textAlign='center';
   ctx.fillStyle=color||`rgba(233,237,247,${alpha})`;
   ctx.fillText(text.toUpperCase(),x,y);
 }
 
-/* ---------- scene renderers ----------
-   each draws in SCREEN coords, given (originX, originY, scale, alpha),
-   and registers clickables when alpha is high & it's the active level */
-function drawUniverse(ox,oy,s,alpha,active,time){
-  ctx.globalAlpha=alpha;
-  /* filaments */
-  ctx.lineWidth=1;
-  for(const e of EDGES){
-    const a=GALAXIES[e[0]],b=GALAXIES[e[1]];
-    ctx.strokeStyle=`rgba(76,110,180,${0.26*alpha})`;
+/* ---------- scene rendering ---------- */
+function drawUniverseLayer(u,time){
+  const uniRel=u.rad*cam.z;
+  const content=ss(uniRel,0.38,0.8);              /* filaments, web */
+  const fabricA=ss(uniRel,0.34,0.7)*(1-ss(uniRel,2.2,4.2));
+  const webA=content*(1-ss(uniRel,6,12));
+  const filA=content*(1-ss(uniRel,3.5,7));
+  const bubbleA=1-ss(uniRel,0.66,1.05);
+  u._filA=filA;
+
+  if(!vis(u.x,u.y,u.rad*3.2))return bubbleA;
+
+  /* spacetime fabric */
+  if(fabricA>0.01){
+    ctx.strokeStyle=`rgba(76,110,180,${0.16*fabricA})`;
+    ctx.lineWidth=1;
+    const N=u.fabric.length;
+    for(let r=0;r<N;r++){
+      ctx.beginPath();
+      for(let c2=0;c2<N;c2++){
+        const p=u.fabric[r][c2];
+        const x=w2sX(p[0]),y=w2sY(p[1]);
+        c2?ctx.lineTo(x,y):ctx.moveTo(x,y);
+      }
+      ctx.stroke();
+    }
+    for(let c2=0;c2<N;c2++){
+      ctx.beginPath();
+      for(let r=0;r<N;r++){
+        const p=u.fabric[r][c2];
+        const x=w2sX(p[0]),y=w2sY(p[1]);
+        r?ctx.lineTo(x,y):ctx.moveTo(x,y);
+      }
+      ctx.stroke();
+    }
+  }
+  /* fine cosmic web — the fabric of small sites */
+  if(webA>0.01){
+    ctx.strokeStyle=`rgba(125,224,255,${0.06*webA})`;
+    ctx.lineWidth=1;
     ctx.beginPath();
-    ctx.moveTo(ox+a.x*SCALE*0.86*s,oy+a.y*SCALE*0.86*s);
-    ctx.quadraticCurveTo(ox+e.cx*SCALE*0.86*s,oy+e.cy*SCALE*0.86*s,ox+b.x*SCALE*0.86*s,oy+b.y*SCALE*0.86*s);
+    for(const s of u.webEdges){
+      ctx.moveTo(w2sX(s[0]),w2sY(s[1]));
+      ctx.lineTo(w2sX(s[2]),w2sY(s[3]));
+    }
     ctx.stroke();
+    ctx.fillStyle=`rgba(214,224,248,${0.28*webA})`;
+    for(const p of u.webNodes){
+      ctx.fillRect(w2sX(p[0])-0.6,w2sY(p[1])-0.6,1.2,1.2);
+    }
   }
-  /* packets */
-  for(const p of packets){
-    const[bx,by]=bez(p.e,p.dir>0?p.t:1-p.t);
-    const x=ox+bx*SCALE*0.86*s,y=oy+by*SCALE*0.86*s;
-    glow(x,y,5.5*Math.min(s,1.4),[125,224,255],0.85*alpha);
-    ctx.fillStyle=`rgba(210,245,255,${alpha})`;
-    ctx.beginPath();ctx.arc(x,y,1.3,0,7);ctx.fill();
+  /* bubble (multiverse view) */
+  if(bubbleA>0.01){
+    const bx=w2sX(u.x),by=w2sY(u.y),br=apparent(u.rad);
+    glow(bx,by,br*1.5,u.tint,0.12*bubbleA);
+    ctx.strokeStyle=`rgba(${u.tint[0]},${u.tint[1]},${u.tint[2]},${0.3*bubbleA})`;
+    ctx.lineWidth=1;
+    if(u.id==='intranet')ctx.setLineDash([2,6]);
+    ctx.beginPath();ctx.arc(bx,by,br,0,7);ctx.stroke();
+    ctx.setLineDash([]);
+    label(bx,by+br+20,u.name,0.85*bubbleA,11.5);
+    label(bx,by+br+36,u.sub,0.5*bubbleA,9.5,`rgba(141,151,181,${0.9*bubbleA})`);
+    if(u.id==='intranet')label(bx,by-br-12,'air gap — nothing crosses',0.45*bubbleA,9,`rgba(170,190,220,${0.7*bubbleA})`);
+    if(bubbleA>0.35&&uniRel<0.75)clickables.push({x:bx,y:by,r:Math.max(br,40),obj:u,kind:'universe',label:u.name,sub:u.sub+' — click to enter'});
   }
-  /* galaxies */
-  for(const g of GALAXIES){
-    const gx=ox+g.x*SCALE*0.86*s, gy=oy+g.y*SCALE*0.86*s;
-    const gr=g.r*SCALE*s;
-    glow(gx,gy,gr*2.4,g.tint,(g.kind==='core'?0.34:0.2)*alpha);
+  /* internal filaments */
+  if(filA>0.01){
+    ctx.lineWidth=1;
+    ctx.strokeStyle=`rgba(76,110,180,${0.26*filA})`;
+    for(const e of ALL_EDGES){
+      if(e.univ!==u)continue;
+      ctx.beginPath();
+      ctx.moveTo(w2sX(e.ax),w2sY(e.ay));
+      ctx.quadraticCurveTo(w2sX(e.cx),w2sY(e.cy),w2sX(e.bx),w2sY(e.by));
+      ctx.stroke();
+      e._a=filA;
+    }
+  }else for(const e of ALL_EDGES)if(e.univ===u)e._a=0;
+  return bubbleA;
+}
+
+function drawGalaxy(g,time){
+  const relDet=g.detR*cam.z;
+  const iconA=ss(relDet,0.04,0.12)*(1-ss(relDet,1.3,2.9));
+  const detailA=ss(relDet,0.6,1.35);
+  const dustA=detailA*(1-ss(relDet,6,14));
+  const labelA=ss(relDet,0.18,0.33)*(1-ss(relDet,1.1,2));
+  g._detailA=detailA;
+  if(!vis(g.wx,g.wy,g.detR*1.6))return;
+  const gx=w2sX(g.wx),gy=w2sY(g.wy);
+
+  /* icon cloud (universe view) */
+  if(iconA>0.01){
+    const gr=apparent(g.r);
+    glow(gx,gy,gr*2.4,g.tint,(g.kind==='core'?0.34:0.2)*iconA);
     const spin=REDUCED?0:time*(g.kind==='core'?0.02:0.035);
     const cs=Math.cos(spin),sn=Math.sin(spin);
     for(const pt of g.particles){
       const rx=pt.x*cs-pt.y*sn, ry=pt.x*sn+pt.y*cs;
       const c=heatColor(pt.heat,g.tint);
       const tw=REDUCED?1:0.75+0.25*Math.sin(time*1.7+pt.tw);
-      ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${pt.a*alpha*tw})`;
-      ctx.beginPath();ctx.arc(gx+rx*gr,gy+ry*gr,pt.sz*Math.min(s,1.6),0,7);ctx.fill();
+      ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${pt.a*iconA*tw})`;
+      ctx.beginPath();ctx.arc(gx+rx*gr,gy+ry*gr,pt.sz*Math.min(Math.max(cam.z,0.5),1.6),0,7);ctx.fill();
     }
-    if(g.kind==='core')glow(gx,gy,gr*0.55,[255,220,160],0.7*alpha);
-    const isHov=active&&hover&&hover.obj===g;
-    if(isHov){ctx.lineWidth=1;ctx.strokeStyle=`rgba(125,224,255,${0.5*alpha})`;ctx.beginPath();ctx.arc(gx,gy,gr*1.35,0,7);ctx.stroke();}
-    label(gx,gy+gr*1.45+14,g.name.replace(/^The /,''),(isHov?0.95:0.55)*alpha,11);
-    if(active)clickables.push({x:gx,y:gy,r:Math.max(gr*1.3,34),obj:g,kind:'galaxy',label:g.name,sub:g.sub+' — click to fall in'});
+    if(g.kind==='core')glow(gx,gy,gr*0.55,[255,220,160],0.7*iconA);
   }
-  ctx.globalAlpha=1;
-}
+  /* detail dust (inside the galaxy) */
+  if(dustA>0.01){
+    const dr=apparent(g.detR)*1.05;
+    glow(gx,gy,dr*1.1,g.tint,0.12*dustA);
+    const spin=REDUCED?0:time*0.008;
+    const cs=Math.cos(spin),sn=Math.sin(spin);
+    const psz=Math.max(0.8,Math.min(4,apparent(g.detR)/430));
+    for(const pt of g.particles){
+      const rx=pt.x*cs-pt.y*sn, ry=pt.x*sn+pt.y*cs;
+      const c=heatColor(pt.heat,g.tint);
+      ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${pt.a*0.3*dustA})`;
+      ctx.beginPath();ctx.arc(gx+rx*dr,gy+ry*dr,pt.sz*psz,0,7);ctx.fill();
+    }
+  }
+  const isHovG=hover&&hover.obj===g;
+  if(isHovG&&iconA>0.3){
+    ctx.lineWidth=1;ctx.strokeStyle=`rgba(125,224,255,${0.5*iconA})`;
+    ctx.beginPath();ctx.arc(gx,gy,apparent(g.r)*1.35,0,7);ctx.stroke();
+  }
+  if(labelA>0.01){
+    label(gx,gy+Math.max(apparent(g.r)*1.45,26)+14,g.name.replace(/^The /,''),(isHovG?0.95:0.55)*labelA,11);
+  }
+  if(labelA>0.3&&relDet<1.2){
+    clickables.push({x:gx,y:gy,r:Math.max(apparent(g.r)*1.3,34),obj:g,kind:'galaxy',label:g.name,sub:g.sub+' — click to fall in'});
+  }
 
-function drawGalaxy(g,ox,oy,s,alpha,active,time){
-  if(!g)return;
-  ctx.globalAlpha=alpha;
-  const R=SCALE*0.78*s;
-  /* backdrop: the galaxy's own dust, enlarged */
-  glow(ox,oy,R*1.15,g.tint,0.13*alpha);
-  const spin=REDUCED?0:time*0.008;
-  const cs=Math.cos(spin),sn=Math.sin(spin);
-  for(const pt of g.particles){
-    const rx=pt.x*cs-pt.y*sn, ry=pt.x*sn+pt.y*cs;
-    const c=heatColor(pt.heat,g.tint);
-    ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${pt.a*0.34*alpha})`;
-    ctx.beginPath();ctx.arc(ox+rx*R*1.05,oy+ry*R*1.05,pt.sz*1.5*Math.min(s,1.3),0,7);ctx.fill();
-  }
   /* local traffic between stars */
-  for(const p of localPk){
-    const a=g.stars[p.a],b=g.stars[p.b];
-    if(!a||!b)continue;
-    const x1=ox+a.gx*R,y1=oy+a.gy*R,x2=ox+b.gx*R,y2=oy+b.gy*R;
-    ctx.strokeStyle=`rgba(76,110,180,${0.16*alpha})`;
-    ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
-    const x=x1+(x2-x1)*p.t,y=y1+(y2-y1)*p.t;
-    glow(x,y,4.5,[125,224,255],0.7*alpha);
+  if(detailA>0.05&&state.ctx.g===g){
+    for(const p of localPk){
+      const a=g.stars[p.a],b=g.stars[p.b];
+      if(!a||!b)continue;
+      const x1=w2sX(a.wx),y1=w2sY(a.wy),x2=w2sX(b.wx),y2=w2sY(b.wy);
+      ctx.strokeStyle=`rgba(76,110,180,${0.16*detailA})`;
+      ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+      const t=Math.min(p.t,1);
+      glow(x1+(x2-x1)*t,y1+(y2-y1)*t,4.5,[125,224,255],0.7*detailA);
+    }
   }
   /* service stars */
-  g.stars.forEach((st,si)=>{
-    const x=ox+st.gx*R, y=oy+st.gy*R;
-    const sr=(7+st.heat*9)*Math.min(s,1.3);
-    const c=heatColor(st.heat,g.tint);
-    glow(x,y,sr*3.2,c,0.5*alpha);
-    /* diffraction spikes */
-    ctx.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},${0.35*alpha})`;
-    ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(x-sr*2.6,y);ctx.lineTo(x+sr*2.6,y);ctx.moveTo(x,y-sr*2.6);ctx.lineTo(x,y+sr*2.6);ctx.stroke();
-    ctx.fillStyle=`rgba(255,255,255,${0.95*alpha})`;
-    ctx.beginPath();ctx.arc(x,y,sr*0.42,0,7);ctx.fill();
-    const isHov=active&&hover&&hover.obj===st;
-    if(isHov){ctx.strokeStyle=`rgba(125,224,255,${0.55*alpha})`;ctx.beginPath();ctx.arc(x,y,sr*2.1,0,7);ctx.stroke();}
-    label(x,y+sr*2.4+13,st.name,(isHov?0.95:0.6)*alpha,10.5);
-    if(active)clickables.push({x,y,r:Math.max(sr*2.4,30),obj:st,kind:'star',label:st.name,sub:st.sub+' — click to enter the system'});
-  });
-  ctx.globalAlpha=1;
+  if(detailA>0.01){
+    for(const st of g.stars)drawStar(st,detailA,time);
+  }
 }
 
-function drawSystem(st,ox,oy,s,alpha,active,time){
-  if(!st)return;
-  ctx.globalAlpha=alpha;
-  const R=SCALE*0.9*s;
-  const g=nav.g||GALAXIES[0];
+function drawStar(st,detailA,time){
+  const g=st.gal;
+  if(!vis(st.wx,st.wy,st.sysR*1.3))return;
+  const x=w2sX(st.wx),y=w2sY(st.wy);
+  const relSys=st.sysR*cam.z;
+  const sysA=ss(relSys,0.2,0.5);
+  const starLblA=detailA*(1-ss(relSys,0.5,0.9));
+  const rW=g.detR*0.02*(0.6+st.heat*0.8);
+  const sr=Math.max(apparent(rW),2.5);
   const c=heatColor(st.heat,g.tint);
-  /* the sun (the service) */
-  const sunR=Math.max(26,SCALE*0.085)*Math.min(s,1.2);
-  glow(ox,oy,sunR*5,c,0.5*alpha);
-  glow(ox,oy,sunR*1.9,[255,235,200],0.85*alpha);
-  ctx.fillStyle=`rgba(255,250,240,${alpha})`;
-  ctx.beginPath();ctx.arc(ox,oy,sunR*0.75,0,7);ctx.fill();
-  label(ox,oy-sunR*1.9-30,st.name,0.75*alpha,11.5);
-  label(ox,oy-sunR*1.9-15,'the server — a star with planets',0.4*alpha,9.5,`rgba(141,151,181,${0.9*alpha})`);
-  /* orbits + planets */
-  st.planets.forEach((pl,pi)=>{
-    const orbR=pl.orbit*R;
-    ctx.strokeStyle=`rgba(141,151,181,${0.14*alpha})`;
+  glow(x,y,sr*3.2,c,0.5*detailA);
+  if(sysA>0.3)glow(x,y,sr*1.9,[255,235,200],0.6*sysA);
+  /* diffraction spikes at galaxy scale only */
+  if(starLblA>0.05){
+    ctx.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},${0.35*starLblA})`;
     ctx.lineWidth=1;
-    ctx.beginPath();ctx.ellipse(ox,oy,orbR,orbR*pl.squash,0,0,7);ctx.stroke();
-    const x=ox+Math.cos(pl.ang)*orbR, y=oy+Math.sin(pl.ang)*orbR*pl.squash;
-    const pr=pl.dev.size*Math.min(s,1.25);
-    const sel=nav.planet===pl;
-    const hex=pl.dev.color;
-    const rgb=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)];
-    glow(x,y,pr*3.4,rgb,(sel?0.75:0.45)*alpha);
-    ctx.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
-    ctx.beginPath();ctx.arc(x,y,pr,0,7);ctx.fill();
-    /* night side */
-    ctx.fillStyle=`rgba(4,7,15,${0.45*alpha})`;
-    ctx.beginPath();ctx.arc(x+pr*0.35*Math.sign(x-ox||1),y,pr*0.92,0,7);ctx.fill();
-    const isHov=active&&hover&&hover.obj===pl;
-    if(isHov||sel){ctx.strokeStyle=`rgba(${sel?'255,199,107':'125,224,255'},${0.6*alpha})`;ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,pr+5,0,7);ctx.stroke();}
-    label(x,y-pr-9,pl.dev.name.replace(/^An? /,''),(isHov||sel?0.9:0.45)*alpha,9.5);
-    if(active)clickables.push({x,y,r:Math.max(pr+12,24),obj:pl,kind:'planet',label:pl.dev.name,sub:'a device in orbit — click for its story'});
-  });
-  /* photons: requests out & responses back along planet-sun lines */
-  for(const p of sysPk){
-    const pl=st.planets[p.pi];if(!pl)continue;
-    const orbR=pl.orbit*R;
-    const px=ox+Math.cos(pl.ang)*orbR, py=oy+Math.sin(pl.ang)*orbR*pl.squash;
-    const t=p.dir>0?p.t:1-p.t;
-    const x=ox+(px-ox)*t, y=oy+(py-oy)*t;
-    glow(x,y,4,[125,224,255],0.8*alpha);
+    ctx.beginPath();ctx.moveTo(x-sr*2.6,y);ctx.lineTo(x+sr*2.6,y);ctx.moveTo(x,y-sr*2.6);ctx.lineTo(x,y+sr*2.6);ctx.stroke();
   }
-  ctx.globalAlpha=1;
+  ctx.fillStyle=`rgba(255,252,244,${0.95*detailA})`;
+  ctx.beginPath();ctx.arc(x,y,Math.max(sr*0.55,1.5),0,7);ctx.fill();
+  const isHov=hover&&hover.obj===st;
+  if(isHov){ctx.strokeStyle=`rgba(125,224,255,${0.55*detailA})`;ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,sr*2.1,0,7);ctx.stroke();}
+  label(x,y+sr*1.5+14,st.name,(isHov?0.95:0.6)*starLblA,10.5);
+  if(sysA>0.25){
+    label(x,y-sr*1.35-26,st.name,0.75*sysA,11.5);
+    label(x,y-sr*1.35-12,'the server — a star with planets',0.4*sysA,9.5,`rgba(141,151,181,${0.9*sysA})`);
+  }
+  if(detailA>0.35&&relSys<1.1){
+    clickables.push({x,y,r:Math.max(sr*2.4,28),obj:st,kind:'star',label:st.name,sub:st.sub+' — click to enter the system'});
+  }
+  /* planetary system */
+  if(sysA>0.01){
+    for(const pl of st.planets){
+      const orbW=pl.orbit*st.sysR;
+      const orbR=apparent(orbW);
+      ctx.strokeStyle=`rgba(141,151,181,${0.14*sysA})`;
+      ctx.lineWidth=1;
+      ctx.beginPath();ctx.ellipse(x,y,orbR,orbR*pl.squash,0,0,7);ctx.stroke();
+      const px=x+Math.cos(pl.ang)*orbR, py=y+Math.sin(pl.ang)*orbR*pl.squash;
+      const pr=Math.max(apparent(st.sysR*pl.dev.size*0.0028),2.2);
+      const sel=state.planet===pl;
+      const hex=pl.dev.color;
+      const rgb=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)];
+      glow(px,py,pr*3.4,rgb,(sel?0.75:0.45)*sysA);
+      ctx.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${sysA})`;
+      ctx.beginPath();ctx.arc(px,py,pr,0,7);ctx.fill();
+      ctx.fillStyle=`rgba(4,7,15,${0.45*sysA})`;
+      ctx.beginPath();ctx.arc(px+pr*0.35*Math.sign(px-x||1),py,pr*0.92,0,7);ctx.fill();
+      const isHovP=hover&&hover.obj===pl;
+      if(isHovP||sel){ctx.strokeStyle=`rgba(${sel?'255,199,107':'125,224,255'},${0.6*sysA})`;ctx.lineWidth=1;ctx.beginPath();ctx.arc(px,py,pr+5,0,7);ctx.stroke();}
+      label(px,py-pr-9,pl.dev.name.replace(/^An? /,''),(isHovP||sel?0.9:0.45)*sysA,9.5);
+      if(sysA>0.35)clickables.push({x:px,y:py,r:Math.max(pr+12,22),obj:pl,kind:'planet',label:pl.dev.name,sub:'a device in orbit — click for its story'});
+    }
+    /* request/response photons */
+    if(state.ctx.s===st){
+      for(const p of sysPk){
+        const pl=p.pl;
+        const orbR=apparent(pl.orbit*st.sysR);
+        const px=x+Math.cos(pl.ang)*orbR, py=y+Math.sin(pl.ang)*orbR*pl.squash;
+        const t=p.dir>0?p.t:1-p.t;
+        glow(x+(px-x)*t,y+(py-y)*t,4,[125,224,255],0.8*sysA);
+      }
+    }
+  }
 }
 
 /* ---------- main loop ---------- */
@@ -935,88 +1240,108 @@ document.addEventListener('visibilitychange',()=>{lastT=performance.now()});
 function frame(now){
   requestAnimationFrame(frame);
   if(!running)return;
-  let dt=Math.min((now-lastT)/1000,0.05);lastT=now;
-  if(REDUCED)dt*=1; /* transitions still advance; ambient motion is gated below */
+  const dt=Math.min((now-lastT)/1000,0.05);lastT=now;
   const time=now/1000;
-  const adt=REDUCED?0:dt; /* ambient dt */
+  const adt=REDUCED?0:dt;
 
-  /* advance ambient motion */
-  for(const p of packets){p.t+=p.speed*adt;if(p.t>1){p.t=0;p.e=EDGES[Math.floor(Math.random()*EDGES.length)];p.dir=Math.random()<0.5?1:-1}}
-  for(const p of localPk){p.t+=p.speed*adt;if(p.t>1&&nav.g){p.t=0;const m=nav.g.stars.length;p.a=Math.floor(Math.random()*m);p.b=(p.a+1+Math.floor(Math.random()*(m-1)))%m}}
-  for(const p of sysPk){p.t+=p.speed*adt;if(p.t>1)p.t=0}
-  if(nav.s)for(const pl of nav.s.planets)pl.ang+=pl.speed*adt;
-
-  /* transition */
-  let tr=0;
-  if(trans){
-    trans.t+=dt/0.85;
-    if(trans.t>=1){
-      const chain=trans.chainTo;
-      trans=null;
-      if(chain!=null&&nav.level>chain)goOut(chain);
-    }else tr=easeInOut(trans.t);
+  /* flight */
+  if(flight){
+    flight.t+=dt/flight.dur;
+    const e=easeInOut(Math.min(flight.t,1));
+    cam.x=flight.fx+(flight.tx-flight.fx)*e;
+    cam.y=flight.fy+(flight.ty-flight.fy)*e;
+    cam.z=Math.exp(flight.fz+(flight.tz-flight.fz)*e);
+    if(flight.t>=1)flight=null;
   }
+
+  /* ambient motion */
+  for(const p of packets){
+    p.t+=p.speed*adt;
+    if(p.t>1){
+      p.t=0;
+      const pool=Math.random()<0.75?internetEdges:ALL_EDGES;
+      p.e=pool[Math.floor(Math.random()*pool.length)];
+      p.dir=Math.random()<0.5?1:-1;
+    }
+  }
+  const cg=state.ctx.g;
+  if(cg){
+    for(const p of localPk){
+      p.t+=p.speed*adt;
+      if(p.t>1){p.t=0;const m=cg.stars.length;p.a=Math.floor(Math.random()*m);p.b=(p.a+1+Math.floor(Math.random()*Math.max(m-1,1)))%m}
+    }
+    for(const st of cg.stars)for(const pl of st.planets)pl.ang+=pl.speed*adt;
+  }
+  for(const p of sysPk){p.t+=p.speed*adt;if(p.t>1)p.t=0}
 
   ctx.setTransform(DPR,0,0,DPR,0,0);
   ctx.fillStyle='#04070f';
   ctx.fillRect(0,0,W,H);
 
-  /* deep starfield */
+  /* deep starfield with slight parallax */
   for(const st of starfield){
     const tw=REDUCED?1:0.7+0.3*Math.sin(time*st.ts+st.tw);
+    let x=(st.x-cam.x*SCALE*st.layer)%W;if(x<0)x+=W;
+    let y=(st.y-cam.y*SCALE*st.layer)%H;if(y<0)y+=H;
     ctx.fillStyle=`rgba(214,224,248,${st.a*tw})`;
-    ctx.fillRect(st.x,st.y,st.r,st.r);
+    ctx.fillRect(x,y,st.r,st.r);
   }
 
   clickables=[];
 
-  /* which scenes to draw, at what transform */
-  const L=nav.level;
-  const drawScene=(lvl,ox,oy,s,alpha,active)=>{
-    if(lvl===0)drawUniverse(ox,oy,s,alpha,active,time);
-    else if(lvl===1)drawGalaxy(nav.g,ox,oy,s,alpha,active,time);
-    else drawSystem(nav.s,ox,oy,s,alpha,active,time);
-  };
+  /* universes: fabric, web, bubbles, filaments */
+  for(const u of UNIVERSES)drawUniverseLayer(u,time);
 
-  if(!trans){
-    drawScene(L,CX,CY,1,1,true);
-  }else if(trans&&tr>=0){
-    const p=trans.pivot;
-    if(trans.dir>0){
-      /* zooming IN: outgoing level L-1 scales up around the pivot & fades;
-         incoming level L grows from 1/Z to 1, riding the same anchor toward center */
-      const s1=1+(Z-1)*tr;
-      const ax=p.x+(CX-p.x)*tr, ay=p.y+(CY-p.y)*tr;
-      const outA=Math.max(0,1-tr*1.9);
-      ctx.save();
-      ctx.translate(ax,ay);ctx.scale(s1,s1);ctx.translate(-p.x,-p.y);
-      drawScene(L-1,CX,CY,1,outA,false);
-      ctx.restore();
-      const sc=1/Z+(1-1/Z)*tr;
-      const inA=Math.max(0,(tr-0.25)/0.75);
-      drawScene(L,ax,ay,sc,inA,false);
-    }else{
-      /* zooming OUT: incoming level L (the wider view) scales down from Z to 1 around pivot;
-         outgoing level L+1 shrinks into the pivot */
-      const s1=Z-(Z-1)*tr;
-      const ax=CX+(p.x-CX)*tr, ay=CY+(p.y-CY)*tr;
-      const inA=Math.min(1,tr*1.9);
-      ctx.save();
-      ctx.translate(ax,ay);ctx.scale(s1,s1);ctx.translate(-p.x,-p.y);
-      drawScene(L,CX,CY,1,inA,false);
-      ctx.restore();
-      const sc=1-(1-1/Z)*tr;
-      const outA=Math.max(0,1-tr*1.6);
-      const bx=CX+(p.x-CX)*tr, by=CY+(p.y-CY)*tr;
-      drawScene(L+1,bx,by,sc,outA,false);
+  /* inter-universe strands */
+  const strandA=1-ss(cam.z,1.3,2.4);
+  if(strandA>0.01){
+    ctx.lineWidth=1;
+    for(const e of STRANDS){
+      ctx.strokeStyle=`rgba(${e.tint},${0.3*strandA})`;
+      ctx.setLineDash([3,8]);
+      ctx.beginPath();
+      ctx.moveTo(w2sX(e.ax),w2sY(e.ay));
+      ctx.quadraticCurveTo(w2sX(e.cx),w2sY(e.cy),w2sX(e.bx),w2sY(e.by));
+      ctx.stroke();
+      ctx.setLineDash([]);
+      e._a=strandA*0.8;
+      if(cam.z<0.6)label(w2sX(e.lx),w2sY(e.ly)-8,e.lbl,0.4*strandA,8.5,`rgba(${e.tint},${0.75*strandA})`);
     }
+  }else for(const e of STRANDS)e._a=0;
+
+  /* packets riding filaments & strands */
+  for(const p of packets){
+    const a=p.e._a||0;
+    if(a<0.02)continue;
+    const[bx,by]=bezXY(p.e,p.dir>0?p.t:1-p.t);
+    const x=w2sX(bx),y=w2sY(by);
+    if(x<-20||x>W+20||y<-20||y>H+20)continue;
+    glow(x,y,5.5,[125,224,255],0.85*a);
+    ctx.fillStyle=`rgba(210,245,255,${a})`;
+    ctx.beginPath();ctx.arc(x,y,1.3,0,7);ctx.fill();
   }
+
+  /* galaxies (icon → dust → stars → systems) */
+  for(const u of UNIVERSES){
+    if(!vis(u.x,u.y,u.rad*3.2))continue;
+    for(const g of u.galaxies)drawGalaxy(g,time);
+  }
+
+  /* context & HUD */
+  const prevG=state.ctx.g,prevS=state.ctx.s;
+  state.ctx=computeContext();
+  if(state.ctx.g&&state.ctx.g!==prevG)seedLocal(state.ctx.g);
+  if(state.ctx.s&&state.ctx.s!==prevS)seedSys(state.ctx.s);
+  if(state.planet&&state.planet.star.sysR*cam.z<0.2)state.planet=null;
+  refreshHud(false);
 
   pickHover();
 }
 resize();
-syncHud();
+refreshHud(true);
 requestAnimationFrame(frame);
+/* debug/testing handle */
+window.__cosmos={cam,state,UNIVERSES,flyUniverse,flyGalaxy,flyStar,flyMultiverse,pickAt,clickables:()=>clickables};
 
 /* ==================================================================
    PLATE FIGURES (SVG)
