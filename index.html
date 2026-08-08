@@ -183,6 +183,36 @@ button{font:inherit;cursor:pointer}
   animation:cueFloat 2.6s ease-in-out infinite;
 }
 #scrollCue:hover{color:var(--ink)}
+
+/* the guided tour */
+#tourBtn{
+  position:absolute;left:16px;bottom:16px;
+  display:none;align-items:center;gap:8px;
+  background:rgba(7,11,23,.72);
+  border:1px solid rgba(255,199,107,.35);
+  border-radius:4px;
+  color:var(--core);
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  padding:9px 14px;
+  backdrop-filter:blur(6px);
+}
+#tourBtn.show{display:inline-flex}
+#tourBtn:hover{border-color:var(--core);color:#ffd898}
+#tourCap{
+  position:absolute;left:50%;bottom:64px;transform:translateX(-50%);
+  max-width:min(640px,86vw);
+  text-align:center;
+  font-family:var(--serif);font-style:italic;
+  font-size:clamp(15px,1.9vw,18.5px);line-height:1.5;
+  color:var(--ink);
+  text-shadow:0 2px 18px rgba(4,7,15,.95),0 0 6px rgba(4,7,15,.9);
+  opacity:0;pointer-events:none;
+  transition:opacity .4s ease;
+}
+@media (max-width:720px){
+  #tourBtn{left:12px;bottom:auto;top:112px}
+  #tourCap{bottom:auto;top:150px}
+}
 @keyframes cueFloat{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,6px)}}
 
 /* ---------- ATLAS PLATES (sections) ---------- */
@@ -293,6 +323,8 @@ footer{
 
     <aside id="panel" aria-live="polite"></aside>
     <div id="tip" role="presentation"></div>
+    <button id="tourBtn" type="button">&#9656;&nbsp;Trace a request</button>
+    <div id="tourCap" aria-live="polite"></div>
     <button id="scrollCue" type="button">Field notes &darr;</button>
   </div>
 </header>
@@ -317,6 +349,14 @@ footer{
       </div>
       <figcaption>Fig. 1 — One request crossing the filaments. Round trip: ~140 ms, of which light in glass is the majority.</figcaption>
     </figure>
+
+    <div class="prose" style="margin-top:36px">
+      <p><strong>The two deals that hold the universe together.</strong> On the map above, the internet’s outer ring is its <em>access arms</em> — the ISPs people actually live in — and every filament between galaxies is one of two contracts. <strong>Transit</strong> (drawn solid) is the paid one: your ISP pays a backbone carrier for the right to reach every network on Earth. <strong>Peering</strong> (drawn dashed) is the barter: two networks that exchange enough traffic just connect directly and swap it for free. The big platforms now peer straight into the arms — which is why most of what you watch never touches the paid core at all. Press <span class="k">▸ trace a request</span> on the map to ride one end to end.</p>
+    </div>
+    <div class="legend" aria-hidden="true">
+      <span class="chip"><span style="display:inline-block;width:20px;height:0;border-top:2px solid #4c6eb4"></span>Transit — paid, via the backbone</span>
+      <span class="chip"><span style="display:inline-block;width:20px;height:0;border-top:2px dashed #6ed2be"></span>Peering — settlement-free, direct</span>
+    </div>
 
     <ol class="steps" aria-label="The steps of a single web request">
       <li><span class="s-name">DNS lookup<small>“Where does this name live?” — the internet’s star catalogue, 13 root server identities in ~1,900 locations.</small></span><span class="s-time num">1–30 ms</span></li>
@@ -577,11 +617,44 @@ const GALAXIES=[
     [ S('Cloudflare','The everywhere star','Sits in front of roughly a fifth of the web, absorbing attacks and shaving milliseconds.',[['Cities','330+'],['Share of web','~20%']],0.75),
       S('Akamai','The original shortcut','Invented the CDN in 1998, when the ocean was slower.',[['Founded','1998'],['Servers','~350,000']],0.6),
       S('Netflix Open Connect','The stream cache','Netflix ships whole racks of films into ISPs’ buildings, so the night’s viewing never crosses the backbone.',[['Downstream traffic','~15% globally']],0.65),
-      S('Fastly & friends','The fast small bodies','Smaller nebulae with the same physics: be near, be quick.',[['Physics','proximity = speed']],0.4)])
+      S('Fastly & friends','The fast small bodies','Smaller nebulae with the same physics: be near, be quick.',[['Physics','proximity = speed']],0.4)]),
+  /* ---- the Access Arms: the ISPs everyone actually lives in ---- */
+  G('arm-na','The North American Arm','Access ISPs — the last mile home',-1.0,-0.05,0.095,'spiral',[125,224,255],
+    'An outer arm of the galaxy where the people live. Access networks own the hardest kilometer in the universe — the one that ends at your wall. Solid filaments here are transit they pay for; dashed ones are peering they get free.',
+    [['Homes passed','100 M+'],['Media','cable, fiber, 5G'],['Business model','you, monthly']],
+    [ S('Comcast / Xfinity','the cable giant','Thirty-two million households ride coax originally laid for television — DOCSIS turned an antenna wire into a gigabit pipe.',[['Subscribers','~32 M'],['Medium','hybrid fiber-coax'],['Legacy','built for TV, 1960s']],0.85),
+      S('AT&T','the ancient one, refibered','A carrier older than radio, now pulling glass to homes its copper served for a century.',[['Fiber passings','30 M+'],['Age','since 1885']],0.7),
+      S('Verizon','fiber & airwaves','FiOS underground, 5G overhead — one network wearing two costumes.',[['5G coverage','230 M+ people']],0.6),
+      S('T-Mobile 5G Home','the wireless insurgent','Broadband with no wire at all: your house becomes just another phone.',[['Home internet subs','6 M+']],0.5),
+      S('The Last Mile','the hardest kilometer','Every technology ever invented — coax, twisted copper, glass, radio — deployed to cross the final stretch to a front door.',[['Cost share','most of the network'],['Media in use','all of them']],0.45)]),
+  G('arm-eu','The European Arm','Access ISPs — the regulated arm',0.55,0.85,0.09,'spiral',[125,224,255],
+    'The arm where regulators made the incumbents share their wires — so a single physical network often carries a dozen rival ISPs at once.',
+    [['Model','wholesale & unbundling'],['Fiber rollout','~70% of homes']],
+    [ S('Deutsche Telekom','the magenta incumbent','Europe’s largest carrier, reaching from Bonn across the whole continent’s backbone.',[['Customers','250 M+ (group)']],0.8),
+      S('Vodafone','the multi-country star','One brand orbiting a dozen national markets at once.',[['Markets','15+ countries']],0.6),
+      S('Orange','the French giant','From Minitel — France’s pre-web proto-internet — to continent-scale fiber.',[['Heritage','Minitel, 1982']],0.55),
+      S('BT & Openreach','the shared wire','One company owns the ducts; many ISPs rent the light. The wholesale model in one star.',[['ISPs riding it','600+']],0.6)]),
+  G('arm-asia','The Asian Arm','Access ISPs — the heaviest arm',1.0,0.0,0.1,'spiral',[125,224,255],
+    'The most populous arm of the galaxy. More humans reach the internet through these stars than through any other structure in the universe.',
+    [['People served','2 B+'],['Growth','fastest anywhere']],
+    [ S('China Telecom & Mobile','the giants','Nearly half a billion broadband lines — the largest access networks ever built.',[['Broadband lines','~500 M combined']],0.85),
+      S('Jio','the price singularity','Entered India in 2016 with data so cheap it bent the market — and pulled 400 million people online.',[['Subscribers','~480 M'],['Effect','cheapest GB on Earth']],0.8),
+      S('NTT & KDDI','the Japanese elders','Fiber-to-the-home before most of the world had broadband at all.',[['FTTH since','early 2000s']],0.6),
+      S('Telkomsel & friends','the archipelago networks','Stitching 17,000 islands into one arm with towers, cables and patience.',[['Islands served','17,000+']],0.5)]),
+  G('arm-orbit','The Orbital Shell','Access from space — the newest arm',0.0,-1.0,0.085,'nebula',[214,235,255],
+    'Not an arm but a shell around the whole galaxy: constellations of satellites serving the places wires never reached. The sky itself became an ISP.',
+    [['Active satellites','~10,000'],['Serves','ships, farms, war zones, everywhere']],
+    [ S('Starlink','the great constellation','Nearly eight thousand satellites in low orbit, each a router moving at 27,000 km/h, handing off lasers as they pass.',[['Satellites','~7,800'],['Latency','25–40 ms'],['Users','5 M+']],0.85),
+      S('OneWeb','the other constellation','A smaller shell, aimed at industry and governments rather than homes.',[['Satellites','~650']],0.5),
+      S('Project Kuiper','still igniting','Amazon’s constellation, just beginning to fill its shell.',[['Status','launching']],0.4),
+      S('The GEO Elders','ViaSat & Hughes — the slow high ones','Parked 36,000 km up: light takes a quarter-second for the round trip, and no protocol can hide it.',[['Orbit','35,786 km'],['Latency','~600 ms'],['Physics','light is slow up there']],0.45)])
 ];
 
-/* filaments between galaxies (indices into GALAXIES) */
-const EDGES=[[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,8],[1,4],[2,3],[1,7],[2,6],[3,6],[4,5],[5,7],[6,8],[1,2],[4,7]];
+/* filaments between galaxies (indices into GALAXIES); third element 'p' = settlement-free peering, default = paid transit */
+const EDGES=[[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,8],[1,4,'p'],[2,3,'p'],[1,7,'p'],[2,6,'p'],[3,6,'p'],[4,5,'p'],[5,7,'p'],[6,8,'p'],[1,2,'p'],[4,7,'p'],
+  /* access arms: transit spokes to the core, peering straight to content */
+  [0,9],[0,10],[0,11],[0,12],
+  [9,1,'p'],[9,8,'p'],[9,4,'p'],[10,1,'p'],[10,8,'p'],[11,6,'p'],[11,2,'p'],[12,8,'p']];
 
 /* ==================================================================
    THE COSMOS ENGINE — continuous free flight
@@ -669,8 +742,8 @@ const CRYPTO_GALAXIES=[
 
 const UNIVERSES=[
   U('internet','Internet','The Internet','the public universe',0,0,1.15,0.86,[125,224,255],
-    'The observable, public universe: everything with a routable address. Its fabric — the grid you can see bending — is capacity itself, warped by the mass of the big platforms.',
-    [['People inside','5.6 B (68% of humanity)'],['Websites','~1.2 B (~200 M active)'],['Submarine cables','~600 · 1.5 M km'],['All stored data','~181 zettabytes']],
+    'The observable, public universe: everything with a routable address. The outer arms are the access ISPs everyone lives in; the core is where they all meet. The fabric — the grid you can see bending — is capacity itself, warped by the mass of the big platforms.',
+    [['People inside','5.6 B (68% of humanity)'],['Access arms','4 + an orbital shell'],['Websites','~1.2 B (~200 M active)'],['Submarine cables','~600 · 1.5 M km'],['All stored data','~181 zettabytes']],
     GALAXIES,EDGES),
   U('darknet','Darknet','The Darknet','the hidden universe',3.3,-1.7,0.55,1,[178,140,255],
     'A universe deliberately built so light cannot be traced — overlay networks riding on top of the public internet, visible only from inside.',
@@ -856,12 +929,12 @@ for(const u of UNIVERSES){
     });
   }
   /* internal filaments */
-  for(const [ia,ib] of u.edgeIdx){
+  for(const [ia,ib,kind] of u.edgeIdx){
     const a=u.galaxies[ia],b=u.galaxies[ib];
     const mx=(a.wx+b.wx)/2,my=(a.wy+b.wy)/2;
     const dx=b.wx-a.wx,dy=b.wy-a.wy,len=Math.hypot(dx,dy)||1;
     const bend=(rndW()-0.5)*0.4*len;
-    ALL_EDGES.push({ax:a.wx,ay:a.wy,bx:b.wx,by:b.wy,cx:mx-dy/len*bend,cy:my+dx/len*bend,univ:u});
+    ALL_EDGES.push({ax:a.wx,ay:a.wy,bx:b.wx,by:b.wy,cx:mx-dy/len*bend,cy:my+dx/len*bend,univ:u,kind:kind||'t',ia,ib});
   }
   /* the spacetime fabric at universe scale, dented by galactic mass */
   u.fabric=makeWarpGrid(u.x,u.y,u.rad*1.3,13,
@@ -924,8 +997,8 @@ const internetEdges=ALL_EDGES.filter(e=>e.univ&&e.univ.id==='internet');
 const packets=[];
 {
   const rp=mulberry32(9);
-  for(let i=0;i<52;i++){
-    const pool=i<40?internetEdges:ALL_EDGES;
+  for(let i=0;i<70;i++){
+    const pool=i<56?internetEdges:ALL_EDGES;
     packets.push({e:pool[Math.floor(rp()*pool.length)],t:rp(),speed:0.10+rp()*0.16,dir:rp()<0.5?1:-1});
   }
 }
@@ -976,6 +1049,61 @@ const flyGalaxy=g=>flyTo(g.wx,g.wy,1.44/g.detR,1.25);
 const flyStar=st=>flyTo(st.wx,st.wy,0.72/st.sysR,1.3);
 const flyMultiverse=()=>flyTo(0,0.5,0.2,1.35);
 
+/* ---------- the Grand Tour: trace a request end to end ---------- */
+let tour=null,tourEdge=null;
+function findEdge(ia,ib){
+  return ALL_EDGES.find(e=>e.univ&&e.univ.id==='internet'&&((e.ia===ia&&e.ib===ib)||(e.ia===ib&&e.ib===ia)))||null;
+}
+function setTourEdge(ia,ib){
+  clearTourEdge();
+  tourEdge=findEdge(ia,ib);
+  if(!tourEdge)return;
+  for(let i=0;i<6;i++)packets.push({e:tourEdge,t:Math.random(),speed:0.45+Math.random()*0.35,dir:Math.random()<0.5?1:-1,tour:1});
+}
+function clearTourEdge(){
+  tourEdge=null;
+  for(let i=packets.length-1;i>=0;i--)if(packets[i].tour)packets.splice(i,1);
+}
+const TOUR=[
+  {go(){flyStar(tour.star)},
+   after(){state.planet=tour.planet;refreshHud(true)},
+   cap:'Your phone wants a video. It whispers to its router-moon, which calls the ISP star it orbits.',dwell:4.5},
+  {go(){flyGalaxy(GALAXIES[9])},
+   cap:'This is the arm of the galaxy where you live: an access network, holding the hardest kilometer — the one that ends at your wall.',dwell:4.5},
+  {go(){flyUniverse(UNIVERSES[0]);setTourEdge(9,0)},
+   cap:'Transit — the solid, golden-lit filament: your ISP pays the backbone to be able to reach every network on Earth.',dwell:5.5},
+  {go(){setTourEdge(9,1)},
+   cap:'Peering — the dashed kind: at the exchange, your ISP and the platform simply swap traffic for free. No money changes hands. Only light.',dwell:5.5},
+  {go(){clearTourEdge();flyStar(GALAXIES[1].stars[1])},
+   cap:'The video streams back at two-thirds the speed of light — most of it from a cache just up your own arm.',dwell:5},
+  {go(){flyUniverse(UNIVERSES[0])},
+   cap:'Round trip: about 40 milliseconds. Arms, spokes, exchanges, filaments — that is the entire machine, tied together.',dwell:5.5},
+];
+function setCaption(txt){
+  tourCap.style.opacity=0;
+  setTimeout(()=>{if(tour){tourCap.textContent=txt;tourCap.style.opacity=1}},260);
+}
+function startTour(){
+  if(tour)return;
+  hideCover();
+  state.planet=null;
+  /* ride a star that actually has a smartphone in orbit */
+  const arm=GALAXIES[9];
+  const star=arm.stars.find(s=>s.planets.some(p=>/smartphone/i.test(p.dev.name)))||arm.stars[0];
+  tour={i:0,dwellUntil:null,star,
+    planet:star.planets.find(p=>/smartphone/i.test(p.dev.name))||star.planets[0]};
+  tourBtn.classList.remove('show');
+  TOUR[0].go();setCaption(TOUR[0].cap);
+}
+function cancelTour(){
+  if(!tour)return;
+  tour=null;
+  state.planet=null;
+  tourCap.style.opacity=0;
+  clearTourEdge();
+  refreshHud(true);
+}
+
 /* ---------- pointer controls ---------- */
 const pointers=new Map();
 let dragDist=0,coverGone=false;
@@ -986,7 +1114,7 @@ function hideCover(){
 canvas.addEventListener('pointerdown',e=>{
   canvas.setPointerCapture(e.pointerId);
   pointers.set(e.pointerId,{x:e.offsetX,y:e.offsetY});
-  dragDist=0;flight=null;hideCover();
+  dragDist=0;flight=null;hideCover();cancelTour();
   canvas.classList.add('dragging');
 });
 canvas.addEventListener('pointermove',e=>{
@@ -1020,7 +1148,7 @@ canvas.addEventListener('pointerup',endPointer);
 canvas.addEventListener('pointercancel',endPointer);
 canvas.addEventListener('pointerleave',e=>{if(!pointers.has(e.pointerId)){mouse.x=-1e4;mouse.y=-1e4}});
 canvas.addEventListener('wheel',e=>{
-  e.preventDefault();flight=null;hideCover();
+  e.preventDefault();flight=null;hideCover();cancelTour();
   zoomAt(e.offsetX,e.offsetY,Math.exp(-e.deltaY*0.0016));
 },{passive:false});
 
@@ -1030,6 +1158,9 @@ const backBtn=document.getElementById('backBtn');
 const panelEl=document.getElementById('panel');
 const coverEl=document.getElementById('cover');
 const tipEl=document.getElementById('tip');
+const tourBtn=document.getElementById('tourBtn');
+const tourCap=document.getElementById('tourCap');
+tourBtn.addEventListener('click',startTour);
 document.getElementById('scrollCue').addEventListener('click',()=>{
   document.getElementById('connected').scrollIntoView({behavior:REDUCED?'auto':'smooth'});
 });
@@ -1037,6 +1168,7 @@ backBtn.addEventListener('click',()=>escUp());
 addEventListener('keydown',e=>{if(e.key==='Escape')escUp()});
 function escUp(){
   hideCover();
+  if(tour){cancelTour();return}
   if(state.planet){state.planet=null;refreshHud(true);return}
   const c=state.ctx;
   if(c.s)flyGalaxy(c.s.gal);
@@ -1086,6 +1218,7 @@ function refreshHud(force){
   if(sStar){crumbsEl.appendChild(sep());crumbsEl.appendChild(crumbBtn(sStar.name,()=>flyStar(sStar),deepest==='s'&&!state.planet))}
   if(state.planet){crumbsEl.appendChild(sep());const s=document.createElement('span');s.className='seg';s.style.color='var(--core)';s.textContent=state.planet.dev.name;crumbsEl.appendChild(s)}
   backBtn.classList.toggle('show',deepest!=='m');
+  tourBtn.classList.toggle('show',!tour&&!!(uUni&&uUni.id==='internet'));
   renderPanel();
 }
 
@@ -1105,7 +1238,10 @@ function renderPanel(){
   }else if(c.g){
     h=panelHTML('Galaxy · '+c.g.sub,c.g.name,c.g.desc,c.g.stats,'Keep diving into a star, or drag to the next galaxy');
   }else if(c.u){
-    h=panelHTML('Universe · '+c.u.sub,c.u.name,c.u.desc,c.u.stats,'Scroll to dive into a galaxy · click empty space to ripple the fabric');
+    h=panelHTML('Universe · '+c.u.sub,c.u.name,c.u.desc,c.u.stats,
+      c.u.id==='internet'
+        ?'Solid filament = paid transit · dashed = free peering · press ▸ trace a request'
+        :'Scroll to dive into a galaxy · click empty space to ripple the fabric');
   }else{
     h=panelHTML('You are adrift in · the multiverse','Five universes, one fabric',
       'The public internet is only the visible universe. Around it float the ones that hide, the ones that wall themselves off, the one it was born from — and the one that turned it into money.',
@@ -1275,10 +1411,19 @@ function drawUniverseLayer(u,time){
   /* internal filaments */
   if(filA>0.01){
     ctx.lineWidth=1;
-    ctx.strokeStyle=`rgba(76,110,180,${0.26*filA})`;
     for(const e of ALL_EDGES){
       if(e.univ!==u)continue;
+      /* transit is solid backbone blue; peering is dashed teal — the free kind of light */
+      if(e.kind==='p'){ctx.strokeStyle=`rgba(110,210,190,${0.22*filA})`;ctx.setLineDash([5,6]);}
+      else ctx.strokeStyle=`rgba(76,110,180,${0.28*filA})`;
       strokeEdge(e,time);
+      ctx.setLineDash([]);
+      if(e===tourEdge){
+        ctx.strokeStyle=`rgba(255,199,107,${0.8*filA})`;
+        ctx.lineWidth=1.8;
+        strokeEdge(e,time);
+        ctx.lineWidth=1;
+      }
       e._a=filA;
     }
   }else for(const e of ALL_EDGES)if(e.univ===u)e._a=0;
@@ -1306,7 +1451,7 @@ function drawGalaxy(g,time){
   const iconA=ss(relDet,0.04,0.12)*(1-ss(relDet,1.3,2.9));
   const detailA=ss(relDet,0.6,1.35);
   const dustA=detailA*(1-ss(relDet,6,14));
-  const labelA=ss(relDet,0.18,0.33)*(1-ss(relDet,1.1,2));
+  const labelA=ss(relDet,0.15,0.27)*(1-ss(relDet,1.1,2));
   g._detailA=detailA;
   if(!vis(g.wx,g.wy,g.detR*1.6))return;
   const gx=w2sX(g.wx),gy=w2sY(g.wy);
@@ -1569,9 +1714,21 @@ function frame(now){
     p.t+=p.speed*adt;
     if(p.t>1){
       p.t=0;
+      if(p.tour)continue; /* tour packets stay on their highlighted edge */
       const pool=Math.random()<0.75?internetEdges:ALL_EDGES;
       p.e=pool[Math.floor(Math.random()*pool.length)];
       p.dir=Math.random()<0.5?1:-1;
+    }
+  }
+  /* advance the guided tour */
+  if(tour&&!flight){
+    if(tour.dwellUntil==null){
+      tour.dwellUntil=time+TOUR[tour.i].dwell;
+      if(TOUR[tour.i].after)TOUR[tour.i].after();
+    }else if(time>tour.dwellUntil){
+      tour.i++;
+      if(tour.i>=TOUR.length)cancelTour();
+      else{tour.dwellUntil=null;TOUR[tour.i].go();setCaption(TOUR[tour.i].cap)}
     }
   }
   const cg=state.ctx.g;
@@ -1707,7 +1864,11 @@ function frame(now){
   state.ctx=computeContext();
   if(state.ctx.g&&state.ctx.g!==prevG)seedLocal(state.ctx.g);
   if(state.ctx.s&&state.ctx.s!==prevS)seedSys(state.ctx.s);
-  if(state.planet&&state.planet.star.sysR*cam.z<0.2)state.planet=null;
+  if(state.planet){
+    const ps=state.planet.star;
+    /* release the selection when its system dissolves OR the camera has left it behind */
+    if(ps.sysR*cam.z<0.2||Math.hypot(cam.x-ps.wx,cam.y-ps.wy)>ps.sysR*20)state.planet=null;
+  }
   refreshHud(false);
 
   pickHover();
@@ -1716,7 +1877,7 @@ resize();
 refreshHud(true);
 requestAnimationFrame(frame);
 /* debug/testing handle */
-window.__cosmos={cam,state,UNIVERSES,flyUniverse,flyGalaxy,flyStar,flyMultiverse,pickAt,clickables:()=>clickables};
+window.__cosmos={cam,state,UNIVERSES,flyUniverse,flyGalaxy,flyStar,flyMultiverse,pickAt,startTour,cancelTour,clickables:()=>clickables};
 
 /* ==================================================================
    PLATE FIGURES (SVG)
